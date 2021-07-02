@@ -23,11 +23,13 @@ import (
 
 	"github.com/go-logr/logr"
 	tfschema "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	auditlib "go.bytebuilders.dev/audit/lib"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/klog/v2"
 	meta_util "kmodules.xyz/client-go/meta"
 	vpcv1alpha1 "kubeform.dev/provider-digitalocean-api/apis/vpc/v1alpha1"
 	"kubeform.dev/provider-digitalocean-controller/controllers"
@@ -43,10 +45,11 @@ type VpcReconciler struct {
 	Log    logr.Logger
 	Scheme *runtime.Scheme
 
-	Gvk      schema.GroupVersionKind // GVK of the Resource
-	Provider *tfschema.Provider      // returns a *schema.Provider from the provider package
-	Resource *tfschema.Resource      // returns *schema.Resource
-	TypeName string                  // resource type
+	Gvk              schema.GroupVersionKind // GVK of the Resource
+	Provider         *tfschema.Provider      // returns a *schema.Provider from the provider package
+	Resource         *tfschema.Resource      // returns *schema.Resource
+	TypeName         string                  // resource type
+	WatchOnlyDefault bool
 }
 
 // +kubebuilder:rbac:groups=vpc.digitalocean.kubeform.com,resources=vpcs,verbs=get;list;watch;create;update;patch;delete
@@ -55,6 +58,10 @@ type VpcReconciler struct {
 func (r *VpcReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("vpc", req.NamespacedName)
 
+	if r.WatchOnlyDefault && req.Namespace != v1.NamespaceDefault {
+		log.Info("Only default namespace is supported for Kubeform Community, Please upgrade to Kubeform Enterprise to use any namespace.")
+		return ctrl.Result{}, nil
+	}
 	var unstructuredObj unstructured.Unstructured
 	unstructuredObj.SetGroupVersionKind(r.Gvk)
 
@@ -74,7 +81,14 @@ func (r *VpcReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 	return ctrl.Result{}, err
 }
 
-func (r *VpcReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *VpcReconciler) SetupWithManager(ctx context.Context, mgr ctrl.Manager, auditor *auditlib.EventPublisher) error {
+	if auditor != nil {
+		if err := auditor.SetupWithManager(ctx, mgr, &vpcv1alpha1.Vpc{}); err != nil {
+			klog.Error(err, "unable to set up auditor", vpcv1alpha1.Vpc{}.APIVersion, vpcv1alpha1.Vpc{}.Kind)
+			return err
+		}
+	}
+
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&vpcv1alpha1.Vpc{}).
 		WithEventFilter(predicate.Funcs{

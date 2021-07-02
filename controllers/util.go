@@ -44,6 +44,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	kmapi "kmodules.xyz/client-go/api/v1"
 	"kmodules.xyz/client-go/meta"
+	base "kubeform.dev/apimachinery/api/v1alpha1"
 	digitalocean "kubeform.dev/provider-digitalocean-api/api/provider"
 	"sigs.k8s.io/cli-utils/pkg/kstatus/status"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -188,11 +189,19 @@ func reconcile(rClient client.Client, provider *tfschema.Provider, ctx context.C
 	}
 
 	if requireNew { // Resources is needed to be destroyed because one of the field needs the resource to be replaced
+		updatePolicy, _, err := unstructured.NestedFieldNoCopy(unstructuredObj.Object, "spec", "updatePolicy")
+		if err != nil {
+			return err
+		}
+		if updatePolicy == string(base.UpdatePolicyDoNotDestroy) {
+			return fmt.Errorf("updatePolicy is set to `DoNotDestroy`, can't destroy the object to create a new one")
+		}
+
 		err = updateStatus(rClient, ctx, unstructuredObj, status.TerminatingStatus)
 		if err != nil {
 			return err
 		}
-		err := destroyTheObject(rawStatus, res, server, tName)
+		err = destroyTheObject(rawStatus, res, server, tName)
 		if err != nil {
 			return err
 		}
@@ -292,15 +301,18 @@ func finalUpdateStatus(rClient client.Client, ctx context.Context, gv schema.Gro
 }
 
 func updateStatus(rClient client.Client, ctx context.Context, obj *unstructured.Unstructured, phase status.Status) error {
-	obsGen, _, err := unstructured.NestedInt64(obj.Object, "metadata", "generation")
-	if err != nil {
-		return err
+	if phase == status.CurrentStatus {
+		obsGen, _, err := unstructured.NestedInt64(obj.Object, "metadata", "generation")
+		if err != nil {
+			return err
+		}
+		err = unstructured.SetNestedField(obj.Object, obsGen, "status", "observedGeneration")
+		if err != nil {
+			return err
+		}
 	}
-	err = unstructured.SetNestedField(obj.Object, obsGen, "status", "observedGeneration")
-	if err != nil {
-		return err
-	}
-	err = setNestedFieldNoCopy(obj.Object, phase, "status", "phase")
+
+	err := setNestedFieldNoCopy(obj.Object, phase, "status", "phase")
 	if err != nil {
 		return err
 	}

@@ -25,7 +25,8 @@ require (
 	k8s.io/client-go v0.21.1
 	k8s.io/klog/v2 v2.8.0
 	kmodules.xyz/client-go v0.0.0-20210617233340-13d22e91512b
-	kubeform.dev/provider-digitalocean-api v0.0.0-20210701134218-ce8d249887b2
+	kubeform.dev/apimachinery v0.0.0-20210629153539-7bcd34a30eb5
+	kubeform.dev/provider-digitalocean-api v0.0.0-20210702220754-95140a653ee7
 	sigs.k8s.io/cli-utils v0.25.0
 	sigs.k8s.io/controller-runtime v0.9.0
 )
@@ -112,7 +113,7 @@ replace google.golang.org/api => google.golang.org/api v0.20.0
 
 replace google.golang.org/genproto => google.golang.org/genproto v0.0.0-20201110150050-8816d57aaa9a
 
-replace google.golang.org/grpc => google.golang.org/grpc v1.27.1
+replace google.golang.org/grpc => google.golang.org/grpc v1.32.0
 
 replace helm.sh/helm/v3 => github.com/kubepack/helm/v3 v3.1.0-rc.1.0.20210503022716-7e2d4913a125
 

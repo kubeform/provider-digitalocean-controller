@@ -70,4 +70,3 @@ case $GITHUB_BASE_REF in
 esac
 
 hub api "$api_url" -f body="$msg"
-
