@@ -51,7 +51,7 @@ endif
 ### These variables should not need tweaking.
 ###
 
-SRC_PKGS := controllers tests
+SRC_PKGS := controllers
 SRC_DIRS := $(SRC_PKGS) *.go # directories which hold app source (not vendored)
 
 DOCKER_PLATFORMS := linux/amd64 linux/arm64
@@ -346,7 +346,7 @@ lint: $(BUILD_DIRS)
 	    --env GO111MODULE=on                                    \
 	    --env GOFLAGS="-mod=vendor"                             \
 	    $(BUILD_IMAGE)                                          \
-	    golangci-lint run --enable $(ADDTL_LINTERS) --timeout=10m --skip-files="generated.*\.go$\" --skip-dirs-use-default --skip-dirs=client,vendor"
+	    golangci-lint run --enable $(ADDTL_LINTERS) --timeout=10m --skip-files="generated.*\.go$\" --skip-dirs-use-default --skip-dirs=client,vendor
 
 $(BUILD_DIRS):
 	@mkdir -p $@
