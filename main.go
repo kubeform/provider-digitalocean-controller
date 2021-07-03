@@ -19,6 +19,8 @@ limitations under the License.
 package main
 
 import (
+	"log"
+
 	_ "go.bytebuilders.dev/license-verifier/info"
 	"gomodules.xyz/logs"
 	_ "k8s.io/client-go/kubernetes/fake"
@@ -29,6 +31,7 @@ import (
 func main() {
 	rootCmd := NewRootCmd(Version)
 	logs.Init(rootCmd, true)
+	log.SetOutput(logs.HTTPLogger{})
 	defer logs.FlushLogs()
 
 	if err := rootCmd.Execute(); err != nil {
