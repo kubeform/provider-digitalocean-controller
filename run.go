@@ -92,7 +92,7 @@ func NewCmdRun(version string) *cobra.Command {
 			watchOnlyDefault := true
 			info := license.NewLicenseEnforcer(cfg, licenseFile).LoadLicense()
 			if info.Status != licenseapi.LicenseActive {
-				klog.Info("License status %s", info.Status)
+				klog.Infof("License status %s", info.Status)
 				os.Exit(1)
 			}
 			if sets.NewString(info.Features...).Has("kubeform-enterprise") {

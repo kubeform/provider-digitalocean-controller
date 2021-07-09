@@ -132,7 +132,7 @@ func watchCRD(ctx context.Context, crdClient *clientset.Clientset, vwcClient *ad
 						// add dynamic ValidatingWebhookConfiguration
 
 						// create empty VWC if the group has come for the first time
-						err := createFirstVWC(vwcClient, gvk)
+						err := createEmptyVWC(vwcClient, gvk)
 						if err != nil {
 							klog.Error(err)
 							return
@@ -167,31 +167,14 @@ func watchCRD(ctx context.Context, crdClient *clientset.Clientset, vwcClient *ad
 	return nil
 }
 
-func createFirstVWC(vwcClient *admissionregistrationv1.AdmissionregistrationV1Client, gvk schema.GroupVersionKind) error {
+func createEmptyVWC(vwcClient *admissionregistrationv1.AdmissionregistrationV1Client, gvk schema.GroupVersionKind) error {
 	vwcName := strings.ReplaceAll(strings.ToLower(gvk.Group), ".", "-") + "-vwc"
-	vwc, err := vwcClient.ValidatingWebhookConfigurations().Get(context.TODO(), vwcName, metav1.GetOptions{})
+	_, err := vwcClient.ValidatingWebhookConfigurations().Get(context.TODO(), vwcName, metav1.GetOptions{})
 	if err == nil || !(errors.IsNotFound(err)) {
 		return err
 	}
 
-	path := "/validate-" + strings.ReplaceAll(strings.ToLower(gvk.Group), ".", "-") + "-v1alpha1-" + strings.ToLower(gvk.Kind)
-	fail := arv1.Fail
-	sideEffects := arv1.SideEffectClassNone
-	admissionReviewVersions := []string{"v1"}
-
-	data, err := ioutil.ReadFile("/tmp/k8s-webhook-server/serving-certs/ca.crt")
-	if err != nil {
-		return err
-	}
-
-	name := strings.ToLower(gvk.Kind) + "." + gvk.Group
-	for _, webhook := range vwc.Webhooks {
-		if webhook.Name == name {
-			return nil
-		}
-	}
-
-	firstVWC := &arv1.ValidatingWebhookConfiguration{
+	emptyVWC := &arv1.ValidatingWebhookConfiguration{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "ValidatingWebhookConfiguration",
 			APIVersion: "admissionregistration.k8s.io/v1",
@@ -202,24 +185,8 @@ func createFirstVWC(vwcClient *admissionregistrationv1.AdmissionregistrationV1Cl
 				"app.kubernetes.io/instance": "digitalocean.kubeform.com",
 			},
 		},
-		Webhooks: []arv1.ValidatingWebhook{
-			{
-				Name: name,
-				ClientConfig: arv1.WebhookClientConfig{
-					Service: &arv1.ServiceReference{
-						Namespace: webhookNamespace,
-						Name:      webhookName,
-						Path:      &path,
-					},
-					CABundle: data,
-				},
-				FailurePolicy:           &fail,
-				SideEffects:             &sideEffects,
-				AdmissionReviewVersions: admissionReviewVersions,
-			},
-		},
 	}
-	_, err = vwcClient.ValidatingWebhookConfigurations().Create(context.TODO(), firstVWC, metav1.CreateOptions{})
+	_, err = vwcClient.ValidatingWebhookConfigurations().Create(context.TODO(), emptyVWC, metav1.CreateOptions{})
 	if err != nil {
 		return err
 	}
@@ -234,20 +201,55 @@ func updateVWC(vwcClient *admissionregistrationv1.AdmissionregistrationV1Client,
 		return err
 	}
 
-	rules := arv1.RuleWithOperations{
-		Operations: []arv1.OperationType{
-			arv1.Create,
-			arv1.Update,
-			arv1.Delete,
-		},
-		Rule: arv1.Rule{
-			APIGroups:   []string{strings.ToLower(gvk.Group)},
-			APIVersions: []string{gvk.Version},
-			Resources:   []string{strings.ToLower(flect.Pluralize(gvk.Kind))},
+	path := "/validate-" + strings.ReplaceAll(strings.ToLower(gvk.Group), ".", "-") + "-v1alpha1-" + strings.ToLower(gvk.Kind)
+	fail := arv1.Fail
+	sideEffects := arv1.SideEffectClassNone
+	admissionReviewVersions := []string{"v1"}
+
+	rules := []arv1.RuleWithOperations{
+		{
+			Operations: []arv1.OperationType{
+				arv1.Create,
+				arv1.Update,
+				arv1.Delete,
+			},
+			Rule: arv1.Rule{
+				APIGroups:   []string{strings.ToLower(gvk.Group)},
+				APIVersions: []string{gvk.Version},
+				Resources:   []string{strings.ToLower(flect.Pluralize(gvk.Kind))},
+			},
 		},
 	}
 
-	vwc.Webhooks[0].Rules = append(vwc.Webhooks[0].Rules, rules)
+	data, err := ioutil.ReadFile("/tmp/k8s-webhook-server/serving-certs/ca.crt")
+	if err != nil {
+		return err
+	}
+
+	name := strings.ToLower(gvk.Kind) + "." + gvk.Group
+	for _, webhook := range vwc.Webhooks {
+		if webhook.Name == name {
+			return nil
+		}
+	}
+
+	newWebhook := arv1.ValidatingWebhook{
+		Name: name,
+		ClientConfig: arv1.WebhookClientConfig{
+			Service: &arv1.ServiceReference{
+				Namespace: webhookNamespace,
+				Name:      webhookName,
+				Path:      &path,
+			},
+			CABundle: data,
+		},
+		Rules:                   rules,
+		FailurePolicy:           &fail,
+		SideEffects:             &sideEffects,
+		AdmissionReviewVersions: admissionReviewVersions,
+	}
+
+	vwc.Webhooks = append(vwc.Webhooks, newWebhook)
 
 	_, err = vwcClient.ValidatingWebhookConfigurations().Update(context.TODO(), vwc, metav1.UpdateOptions{})
 	if err != nil {
