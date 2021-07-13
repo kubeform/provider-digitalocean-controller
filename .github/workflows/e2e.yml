@@ -121,6 +121,7 @@ jobs:
         env:
           REGISTRY: kubedbci
           TEST_CREDENTIALS: ${{ secrets.TEST_CREDENTIALS }}
+          GOOGLE_SERVICE_ACCOUNT_JSON_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON_KEY }}
         run: |
           echo "preparing test credentials"
           mkdir -p hack/config
