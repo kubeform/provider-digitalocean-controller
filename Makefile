@@ -52,7 +52,7 @@ endif
 ###
 
 SRC_PKGS := controllers
-SRC_DIRS := $(SRC_PKGS) *.go # directories which hold app source (not vendored)
+SRC_DIRS := $(SRC_PKGS) tests *.go # directories which hold app source (not vendored)
 
 DOCKER_PLATFORMS := linux/amd64 linux/arm64
 BIN_PLATFORMS    := $(DOCKER_PLATFORMS) windows/amd64 darwin/amd64
@@ -350,6 +350,43 @@ lint: $(BUILD_DIRS)
 
 $(BUILD_DIRS):
 	@mkdir -p $@
+
+REGISTRY_SECRET 	?=
+IMAGE_PULL_POLICY 	?= Always
+
+ifeq ($(strip $(REGISTRY_SECRET)),)
+	IMAGE_PULL_SECRETS =
+else
+	IMAGE_PULL_SECRETS = --set imagePullSecrets[0].name=$(REGISTRY_SECRET)
+endif
+
+.PHONY:chart-dependencies
+chart-dependencies:
+	cd ../installer; \
+	bash ./hack/scripts/update-chart-dependencies.sh; \
+
+.PHONY: install
+install:
+	cd ../installer; \
+	helm install kubeform-provider-$(PROVIDER) charts/kubeform-provider-$(PROVIDER) --wait  \
+		--namespace=$(KUBE_NAMESPACE)        		\
+		--create-namespace					 		\
+		--set-file kubeform-provider.license=$(LICENSE_FILE)    \
+		--set kubeform-provider.operator.registry=$(REGISTRY)  		\
+		--set kubeform-provider.operator.repository=$(BIN)     		\
+		--set kubeform-provider.operator.tag=$(TAG)            		\
+		--set imagePullPolicy=$(IMAGE_PULL_POLICY)	\
+		--set crds.domain=true \
+		$(IMAGE_PULL_SECRETS);
+
+.PHONY: uninstall
+uninstall:
+	@cd ../installer; \
+	helm uninstall kubeform-provider-$(PROVIDER) --namespace=$(KUBE_NAMESPACE) || true
+
+.PHONY: purge
+purge: uninstall
+	kubectl delete crds -l app.kubernetes.io/name=$(PROVIDER).kubeform.com
 
 .PHONY: verify
 verify: # verify-gen verify-modules
