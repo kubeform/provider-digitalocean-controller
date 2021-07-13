@@ -134,9 +134,11 @@ func reconcile(rClient client.Client, provider *tfschema.Provider, ctx context.C
 				return err
 			}
 			// if not found then also delete
-			err = destroyTheObject(rawStatus, res, server, tName)
-			if err != nil && !strings.Contains(err.Error(), "[404] Not found") {
-				return err
+			if found {
+				err = destroyTheObject(rawStatus, res, server, tName)
+				if err != nil && !strings.Contains(err.Error(), "[404] Not found") {
+					return err
+				}
 			}
 			return removeFinalizer(ctx, rClient, unstructuredObj, KFCFinalizer)
 		}
@@ -605,8 +607,8 @@ func getStatusWithSensitiveData(gv schema.GroupVersion, rClient client.Client, c
 	}
 
 	typedStruct := structs.New(typedObj)
-	status := reflect.ValueOf(typedStruct.Field("Spec").Field("KubeformOutput").Value())
-	statusType := reflect.TypeOf(typedStruct.Field("Spec").Field("KubeformOutput").Value())
+	status := reflect.ValueOf(typedStruct.Field("Spec").Field("State").Value())
+	statusType := reflect.TypeOf(typedStruct.Field("Spec").Field("State").Value())
 	statusValue := reflect.New(statusType)
 	statusValue.Elem().Set(status)
 
@@ -864,7 +866,7 @@ func updateStateField(rClient client.Client, ctx context.Context, intrfc map[str
 			if err != nil {
 				return err
 			}
-			err = unstructured.SetNestedField(obj.Object, specMap, "spec", "kubeformOutput")
+			err = unstructured.SetNestedField(obj.Object, specMap, "spec", "state")
 			if err != nil {
 				return err
 			}
@@ -910,7 +912,7 @@ func updateStateField(rClient client.Client, ctx context.Context, intrfc map[str
 		return err
 	}
 
-	err = unstructured.SetNestedField(obj.Object, specMap, "spec", "kubeformOutput")
+	err = unstructured.SetNestedField(obj.Object, specMap, "spec", "state")
 	if err != nil {
 		return err
 	}
