@@ -29,7 +29,7 @@ require (
 	kmodules.xyz/client-go v0.0.0-20210617233340-13d22e91512b
 	kmodules.xyz/constants v0.0.0-20210218100002-2c304bfda278
 	kubeform.dev/apimachinery v0.0.0-20210629153539-7bcd34a30eb5
-	kubeform.dev/provider-digitalocean-api v0.1.1-0.20210713071609-185ba73cddd2
+	kubeform.dev/provider-digitalocean-api v0.1.1-0.20210713075529-20ee75bf1e2a
 	sigs.k8s.io/cli-utils v0.25.0
 	sigs.k8s.io/controller-runtime v0.9.0
 )
