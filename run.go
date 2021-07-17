@@ -90,16 +90,18 @@ func NewCmdRun(version string) *cobra.Command {
 			cfg := mgr.GetConfig()
 
 			watchOnlyDefault := true
-			info := license.NewLicenseEnforcer(cfg, licenseFile).LoadLicense()
-			if info.Status != licenseapi.LicenseActive {
-				klog.Infof("License status %s", info.Status)
-				os.Exit(1)
-			}
-			if sets.NewString(info.Features...).Has("kubeform-enterprise") {
-				watchOnlyDefault = false
-			} else if !sets.NewString(info.Features...).Has("kubeform-community") {
-				setupLog.Error(fmt.Errorf("not a valid license for this product"), "")
-				os.Exit(1)
+			if licenseFile != "" {
+				info := license.NewLicenseEnforcer(cfg, licenseFile).LoadLicense()
+				if info.Status != licenseapi.LicenseActive {
+					klog.Infof("License status %s", info.Status)
+					os.Exit(1)
+				}
+				if sets.NewString(info.Features...).Has("kubeform-enterprise") {
+					watchOnlyDefault = false
+				} else if !sets.NewString(info.Features...).Has("kubeform-community") {
+					setupLog.Error(fmt.Errorf("not a valid license for this product"), "")
+					os.Exit(1)
+				}
 			}
 
 			// audit event publisher
