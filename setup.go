@@ -27,7 +27,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean"
+	digitalocean "github.com/digitalocean/terraform-provider-digitalocean/digitalocean"
 	"github.com/gobuffalo/flect"
 	auditlib "go.bytebuilders.dev/audit/lib"
 	arv1 "k8s.io/api/admissionregistration/v1"
