@@ -81,6 +81,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
+var _provider = digitalocean.Provider()
+
 var runningControllers = struct {
 	sync.RWMutex
 	mp map[schema.GroupVersionKind]bool
@@ -270,8 +272,8 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 			Log:              ctrl.Log.WithName("controllers").WithName("App"),
 			Scheme:           mgr.GetScheme(),
 			Gvk:              gvk,
-			Provider:         digitalocean.Provider(),
-			Resource:         digitalocean.Provider().ResourcesMap["digitalocean_app"],
+			Provider:         _provider,
+			Resource:         _provider.ResourcesMap["digitalocean_app"],
 			TypeName:         "digitalocean_app",
 			WatchOnlyDefault: watchOnlyDefault,
 		}).SetupWithManager(ctx, mgr, auditor); err != nil {
@@ -288,8 +290,8 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 			Log:              ctrl.Log.WithName("controllers").WithName("Cdn"),
 			Scheme:           mgr.GetScheme(),
 			Gvk:              gvk,
-			Provider:         digitalocean.Provider(),
-			Resource:         digitalocean.Provider().ResourcesMap["digitalocean_cdn"],
+			Provider:         _provider,
+			Resource:         _provider.ResourcesMap["digitalocean_cdn"],
 			TypeName:         "digitalocean_cdn",
 			WatchOnlyDefault: watchOnlyDefault,
 		}).SetupWithManager(ctx, mgr, auditor); err != nil {
@@ -306,8 +308,8 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 			Log:              ctrl.Log.WithName("controllers").WithName("Certificate"),
 			Scheme:           mgr.GetScheme(),
 			Gvk:              gvk,
-			Provider:         digitalocean.Provider(),
-			Resource:         digitalocean.Provider().ResourcesMap["digitalocean_certificate"],
+			Provider:         _provider,
+			Resource:         _provider.ResourcesMap["digitalocean_certificate"],
 			TypeName:         "digitalocean_certificate",
 			WatchOnlyDefault: watchOnlyDefault,
 		}).SetupWithManager(ctx, mgr, auditor); err != nil {
@@ -324,8 +326,8 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 			Log:              ctrl.Log.WithName("controllers").WithName("ContainerRegistry"),
 			Scheme:           mgr.GetScheme(),
 			Gvk:              gvk,
-			Provider:         digitalocean.Provider(),
-			Resource:         digitalocean.Provider().ResourcesMap["digitalocean_container_registry"],
+			Provider:         _provider,
+			Resource:         _provider.ResourcesMap["digitalocean_container_registry"],
 			TypeName:         "digitalocean_container_registry",
 			WatchOnlyDefault: watchOnlyDefault,
 		}).SetupWithManager(ctx, mgr, auditor); err != nil {
@@ -342,8 +344,8 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 			Log:              ctrl.Log.WithName("controllers").WithName("DockerCredentials"),
 			Scheme:           mgr.GetScheme(),
 			Gvk:              gvk,
-			Provider:         digitalocean.Provider(),
-			Resource:         digitalocean.Provider().ResourcesMap["digitalocean_container_registry_docker_credentials"],
+			Provider:         _provider,
+			Resource:         _provider.ResourcesMap["digitalocean_container_registry_docker_credentials"],
 			TypeName:         "digitalocean_container_registry_docker_credentials",
 			WatchOnlyDefault: watchOnlyDefault,
 		}).SetupWithManager(ctx, mgr, auditor); err != nil {
@@ -360,8 +362,8 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 			Log:              ctrl.Log.WithName("controllers").WithName("Image"),
 			Scheme:           mgr.GetScheme(),
 			Gvk:              gvk,
-			Provider:         digitalocean.Provider(),
-			Resource:         digitalocean.Provider().ResourcesMap["digitalocean_custom_image"],
+			Provider:         _provider,
+			Resource:         _provider.ResourcesMap["digitalocean_custom_image"],
 			TypeName:         "digitalocean_custom_image",
 			WatchOnlyDefault: watchOnlyDefault,
 		}).SetupWithManager(ctx, mgr, auditor); err != nil {
@@ -378,8 +380,8 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 			Log:              ctrl.Log.WithName("controllers").WithName("Cluster"),
 			Scheme:           mgr.GetScheme(),
 			Gvk:              gvk,
-			Provider:         digitalocean.Provider(),
-			Resource:         digitalocean.Provider().ResourcesMap["digitalocean_database_cluster"],
+			Provider:         _provider,
+			Resource:         _provider.ResourcesMap["digitalocean_database_cluster"],
 			TypeName:         "digitalocean_database_cluster",
 			WatchOnlyDefault: watchOnlyDefault,
 		}).SetupWithManager(ctx, mgr, auditor); err != nil {
@@ -396,8 +398,8 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 			Log:              ctrl.Log.WithName("controllers").WithName("ConnectionPool"),
 			Scheme:           mgr.GetScheme(),
 			Gvk:              gvk,
-			Provider:         digitalocean.Provider(),
-			Resource:         digitalocean.Provider().ResourcesMap["digitalocean_database_connection_pool"],
+			Provider:         _provider,
+			Resource:         _provider.ResourcesMap["digitalocean_database_connection_pool"],
 			TypeName:         "digitalocean_database_connection_pool",
 			WatchOnlyDefault: watchOnlyDefault,
 		}).SetupWithManager(ctx, mgr, auditor); err != nil {
@@ -414,8 +416,8 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 			Log:              ctrl.Log.WithName("controllers").WithName("Db"),
 			Scheme:           mgr.GetScheme(),
 			Gvk:              gvk,
-			Provider:         digitalocean.Provider(),
-			Resource:         digitalocean.Provider().ResourcesMap["digitalocean_database_db"],
+			Provider:         _provider,
+			Resource:         _provider.ResourcesMap["digitalocean_database_db"],
 			TypeName:         "digitalocean_database_db",
 			WatchOnlyDefault: watchOnlyDefault,
 		}).SetupWithManager(ctx, mgr, auditor); err != nil {
@@ -432,8 +434,8 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 			Log:              ctrl.Log.WithName("controllers").WithName("Firewall"),
 			Scheme:           mgr.GetScheme(),
 			Gvk:              gvk,
-			Provider:         digitalocean.Provider(),
-			Resource:         digitalocean.Provider().ResourcesMap["digitalocean_database_firewall"],
+			Provider:         _provider,
+			Resource:         _provider.ResourcesMap["digitalocean_database_firewall"],
 			TypeName:         "digitalocean_database_firewall",
 			WatchOnlyDefault: watchOnlyDefault,
 		}).SetupWithManager(ctx, mgr, auditor); err != nil {
@@ -450,8 +452,8 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 			Log:              ctrl.Log.WithName("controllers").WithName("Replica"),
 			Scheme:           mgr.GetScheme(),
 			Gvk:              gvk,
-			Provider:         digitalocean.Provider(),
-			Resource:         digitalocean.Provider().ResourcesMap["digitalocean_database_replica"],
+			Provider:         _provider,
+			Resource:         _provider.ResourcesMap["digitalocean_database_replica"],
 			TypeName:         "digitalocean_database_replica",
 			WatchOnlyDefault: watchOnlyDefault,
 		}).SetupWithManager(ctx, mgr, auditor); err != nil {
@@ -468,8 +470,8 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 			Log:              ctrl.Log.WithName("controllers").WithName("User"),
 			Scheme:           mgr.GetScheme(),
 			Gvk:              gvk,
-			Provider:         digitalocean.Provider(),
-			Resource:         digitalocean.Provider().ResourcesMap["digitalocean_database_user"],
+			Provider:         _provider,
+			Resource:         _provider.ResourcesMap["digitalocean_database_user"],
 			TypeName:         "digitalocean_database_user",
 			WatchOnlyDefault: watchOnlyDefault,
 		}).SetupWithManager(ctx, mgr, auditor); err != nil {
@@ -486,8 +488,8 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 			Log:              ctrl.Log.WithName("controllers").WithName("Domain"),
 			Scheme:           mgr.GetScheme(),
 			Gvk:              gvk,
-			Provider:         digitalocean.Provider(),
-			Resource:         digitalocean.Provider().ResourcesMap["digitalocean_domain"],
+			Provider:         _provider,
+			Resource:         _provider.ResourcesMap["digitalocean_domain"],
 			TypeName:         "digitalocean_domain",
 			WatchOnlyDefault: watchOnlyDefault,
 		}).SetupWithManager(ctx, mgr, auditor); err != nil {
@@ -504,8 +506,8 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 			Log:              ctrl.Log.WithName("controllers").WithName("Droplet"),
 			Scheme:           mgr.GetScheme(),
 			Gvk:              gvk,
-			Provider:         digitalocean.Provider(),
-			Resource:         digitalocean.Provider().ResourcesMap["digitalocean_droplet"],
+			Provider:         _provider,
+			Resource:         _provider.ResourcesMap["digitalocean_droplet"],
 			TypeName:         "digitalocean_droplet",
 			WatchOnlyDefault: watchOnlyDefault,
 		}).SetupWithManager(ctx, mgr, auditor); err != nil {
@@ -522,8 +524,8 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 			Log:              ctrl.Log.WithName("controllers").WithName("Snapshot"),
 			Scheme:           mgr.GetScheme(),
 			Gvk:              gvk,
-			Provider:         digitalocean.Provider(),
-			Resource:         digitalocean.Provider().ResourcesMap["digitalocean_droplet_snapshot"],
+			Provider:         _provider,
+			Resource:         _provider.ResourcesMap["digitalocean_droplet_snapshot"],
 			TypeName:         "digitalocean_droplet_snapshot",
 			WatchOnlyDefault: watchOnlyDefault,
 		}).SetupWithManager(ctx, mgr, auditor); err != nil {
@@ -540,8 +542,8 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 			Log:              ctrl.Log.WithName("controllers").WithName("Firewall"),
 			Scheme:           mgr.GetScheme(),
 			Gvk:              gvk,
-			Provider:         digitalocean.Provider(),
-			Resource:         digitalocean.Provider().ResourcesMap["digitalocean_firewall"],
+			Provider:         _provider,
+			Resource:         _provider.ResourcesMap["digitalocean_firewall"],
 			TypeName:         "digitalocean_firewall",
 			WatchOnlyDefault: watchOnlyDefault,
 		}).SetupWithManager(ctx, mgr, auditor); err != nil {
@@ -558,8 +560,8 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 			Log:              ctrl.Log.WithName("controllers").WithName("FloatingIP"),
 			Scheme:           mgr.GetScheme(),
 			Gvk:              gvk,
-			Provider:         digitalocean.Provider(),
-			Resource:         digitalocean.Provider().ResourcesMap["digitalocean_floating_ip"],
+			Provider:         _provider,
+			Resource:         _provider.ResourcesMap["digitalocean_floating_ip"],
 			TypeName:         "digitalocean_floating_ip",
 			WatchOnlyDefault: watchOnlyDefault,
 		}).SetupWithManager(ctx, mgr, auditor); err != nil {
@@ -576,8 +578,8 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 			Log:              ctrl.Log.WithName("controllers").WithName("Assignment"),
 			Scheme:           mgr.GetScheme(),
 			Gvk:              gvk,
-			Provider:         digitalocean.Provider(),
-			Resource:         digitalocean.Provider().ResourcesMap["digitalocean_floating_ip_assignment"],
+			Provider:         _provider,
+			Resource:         _provider.ResourcesMap["digitalocean_floating_ip_assignment"],
 			TypeName:         "digitalocean_floating_ip_assignment",
 			WatchOnlyDefault: watchOnlyDefault,
 		}).SetupWithManager(ctx, mgr, auditor); err != nil {
@@ -594,8 +596,8 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 			Log:              ctrl.Log.WithName("controllers").WithName("Cluster"),
 			Scheme:           mgr.GetScheme(),
 			Gvk:              gvk,
-			Provider:         digitalocean.Provider(),
-			Resource:         digitalocean.Provider().ResourcesMap["digitalocean_kubernetes_cluster"],
+			Provider:         _provider,
+			Resource:         _provider.ResourcesMap["digitalocean_kubernetes_cluster"],
 			TypeName:         "digitalocean_kubernetes_cluster",
 			WatchOnlyDefault: watchOnlyDefault,
 		}).SetupWithManager(ctx, mgr, auditor); err != nil {
@@ -612,8 +614,8 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 			Log:              ctrl.Log.WithName("controllers").WithName("NodePool"),
 			Scheme:           mgr.GetScheme(),
 			Gvk:              gvk,
-			Provider:         digitalocean.Provider(),
-			Resource:         digitalocean.Provider().ResourcesMap["digitalocean_kubernetes_node_pool"],
+			Provider:         _provider,
+			Resource:         _provider.ResourcesMap["digitalocean_kubernetes_node_pool"],
 			TypeName:         "digitalocean_kubernetes_node_pool",
 			WatchOnlyDefault: watchOnlyDefault,
 		}).SetupWithManager(ctx, mgr, auditor); err != nil {
@@ -630,8 +632,8 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 			Log:              ctrl.Log.WithName("controllers").WithName("Loadbalancer"),
 			Scheme:           mgr.GetScheme(),
 			Gvk:              gvk,
-			Provider:         digitalocean.Provider(),
-			Resource:         digitalocean.Provider().ResourcesMap["digitalocean_loadbalancer"],
+			Provider:         _provider,
+			Resource:         _provider.ResourcesMap["digitalocean_loadbalancer"],
 			TypeName:         "digitalocean_loadbalancer",
 			WatchOnlyDefault: watchOnlyDefault,
 		}).SetupWithManager(ctx, mgr, auditor); err != nil {
@@ -648,8 +650,8 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 			Log:              ctrl.Log.WithName("controllers").WithName("Project"),
 			Scheme:           mgr.GetScheme(),
 			Gvk:              gvk,
-			Provider:         digitalocean.Provider(),
-			Resource:         digitalocean.Provider().ResourcesMap["digitalocean_project"],
+			Provider:         _provider,
+			Resource:         _provider.ResourcesMap["digitalocean_project"],
 			TypeName:         "digitalocean_project",
 			WatchOnlyDefault: watchOnlyDefault,
 		}).SetupWithManager(ctx, mgr, auditor); err != nil {
@@ -666,8 +668,8 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 			Log:              ctrl.Log.WithName("controllers").WithName("Resources"),
 			Scheme:           mgr.GetScheme(),
 			Gvk:              gvk,
-			Provider:         digitalocean.Provider(),
-			Resource:         digitalocean.Provider().ResourcesMap["digitalocean_project_resources"],
+			Provider:         _provider,
+			Resource:         _provider.ResourcesMap["digitalocean_project_resources"],
 			TypeName:         "digitalocean_project_resources",
 			WatchOnlyDefault: watchOnlyDefault,
 		}).SetupWithManager(ctx, mgr, auditor); err != nil {
@@ -684,8 +686,8 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 			Log:              ctrl.Log.WithName("controllers").WithName("Record"),
 			Scheme:           mgr.GetScheme(),
 			Gvk:              gvk,
-			Provider:         digitalocean.Provider(),
-			Resource:         digitalocean.Provider().ResourcesMap["digitalocean_record"],
+			Provider:         _provider,
+			Resource:         _provider.ResourcesMap["digitalocean_record"],
 			TypeName:         "digitalocean_record",
 			WatchOnlyDefault: watchOnlyDefault,
 		}).SetupWithManager(ctx, mgr, auditor); err != nil {
@@ -702,8 +704,8 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 			Log:              ctrl.Log.WithName("controllers").WithName("SpacesBucket"),
 			Scheme:           mgr.GetScheme(),
 			Gvk:              gvk,
-			Provider:         digitalocean.Provider(),
-			Resource:         digitalocean.Provider().ResourcesMap["digitalocean_spaces_bucket"],
+			Provider:         _provider,
+			Resource:         _provider.ResourcesMap["digitalocean_spaces_bucket"],
 			TypeName:         "digitalocean_spaces_bucket",
 			WatchOnlyDefault: watchOnlyDefault,
 		}).SetupWithManager(ctx, mgr, auditor); err != nil {
@@ -720,8 +722,8 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 			Log:              ctrl.Log.WithName("controllers").WithName("Object"),
 			Scheme:           mgr.GetScheme(),
 			Gvk:              gvk,
-			Provider:         digitalocean.Provider(),
-			Resource:         digitalocean.Provider().ResourcesMap["digitalocean_spaces_bucket_object"],
+			Provider:         _provider,
+			Resource:         _provider.ResourcesMap["digitalocean_spaces_bucket_object"],
 			TypeName:         "digitalocean_spaces_bucket_object",
 			WatchOnlyDefault: watchOnlyDefault,
 		}).SetupWithManager(ctx, mgr, auditor); err != nil {
@@ -738,8 +740,8 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 			Log:              ctrl.Log.WithName("controllers").WithName("Key"),
 			Scheme:           mgr.GetScheme(),
 			Gvk:              gvk,
-			Provider:         digitalocean.Provider(),
-			Resource:         digitalocean.Provider().ResourcesMap["digitalocean_ssh_key"],
+			Provider:         _provider,
+			Resource:         _provider.ResourcesMap["digitalocean_ssh_key"],
 			TypeName:         "digitalocean_ssh_key",
 			WatchOnlyDefault: watchOnlyDefault,
 		}).SetupWithManager(ctx, mgr, auditor); err != nil {
@@ -756,8 +758,8 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 			Log:              ctrl.Log.WithName("controllers").WithName("Tag"),
 			Scheme:           mgr.GetScheme(),
 			Gvk:              gvk,
-			Provider:         digitalocean.Provider(),
-			Resource:         digitalocean.Provider().ResourcesMap["digitalocean_tag"],
+			Provider:         _provider,
+			Resource:         _provider.ResourcesMap["digitalocean_tag"],
 			TypeName:         "digitalocean_tag",
 			WatchOnlyDefault: watchOnlyDefault,
 		}).SetupWithManager(ctx, mgr, auditor); err != nil {
@@ -774,8 +776,8 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 			Log:              ctrl.Log.WithName("controllers").WithName("Volume"),
 			Scheme:           mgr.GetScheme(),
 			Gvk:              gvk,
-			Provider:         digitalocean.Provider(),
-			Resource:         digitalocean.Provider().ResourcesMap["digitalocean_volume"],
+			Provider:         _provider,
+			Resource:         _provider.ResourcesMap["digitalocean_volume"],
 			TypeName:         "digitalocean_volume",
 			WatchOnlyDefault: watchOnlyDefault,
 		}).SetupWithManager(ctx, mgr, auditor); err != nil {
@@ -792,8 +794,8 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 			Log:              ctrl.Log.WithName("controllers").WithName("Attachment"),
 			Scheme:           mgr.GetScheme(),
 			Gvk:              gvk,
-			Provider:         digitalocean.Provider(),
-			Resource:         digitalocean.Provider().ResourcesMap["digitalocean_volume_attachment"],
+			Provider:         _provider,
+			Resource:         _provider.ResourcesMap["digitalocean_volume_attachment"],
 			TypeName:         "digitalocean_volume_attachment",
 			WatchOnlyDefault: watchOnlyDefault,
 		}).SetupWithManager(ctx, mgr, auditor); err != nil {
@@ -810,8 +812,8 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 			Log:              ctrl.Log.WithName("controllers").WithName("Snapshot"),
 			Scheme:           mgr.GetScheme(),
 			Gvk:              gvk,
-			Provider:         digitalocean.Provider(),
-			Resource:         digitalocean.Provider().ResourcesMap["digitalocean_volume_snapshot"],
+			Provider:         _provider,
+			Resource:         _provider.ResourcesMap["digitalocean_volume_snapshot"],
 			TypeName:         "digitalocean_volume_snapshot",
 			WatchOnlyDefault: watchOnlyDefault,
 		}).SetupWithManager(ctx, mgr, auditor); err != nil {
@@ -828,8 +830,8 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 			Log:              ctrl.Log.WithName("controllers").WithName("Vpc"),
 			Scheme:           mgr.GetScheme(),
 			Gvk:              gvk,
-			Provider:         digitalocean.Provider(),
-			Resource:         digitalocean.Provider().ResourcesMap["digitalocean_vpc"],
+			Provider:         _provider,
+			Resource:         _provider.ResourcesMap["digitalocean_vpc"],
 			TypeName:         "digitalocean_vpc",
 			WatchOnlyDefault: watchOnlyDefault,
 		}).SetupWithManager(ctx, mgr, auditor); err != nil {
