@@ -120,7 +120,6 @@ github.com/form3tech-oss/jwt-go
 # github.com/fsnotify/fsnotify v1.4.9
 github.com/fsnotify/fsnotify
 # github.com/go-errors/errors v1.0.1
-## explicit
 github.com/go-errors/errors
 # github.com/go-logr/logr v0.4.0
 ## explicit
@@ -1198,10 +1197,11 @@ kmodules.xyz/resource-metadata/hub
 kmodules.xyz/resource-metadata/hub/resourceclasses
 kmodules.xyz/resource-metadata/hub/resourcedescriptors
 kmodules.xyz/resource-metadata/pkg/graph
-# kubeform.dev/apimachinery v0.0.0-20210629153539-7bcd34a30eb5
+# kubeform.dev/apimachinery v0.0.0-20210824104859-ba5604d5a1cc
 ## explicit
 kubeform.dev/apimachinery/api/v1alpha1
-# kubeform.dev/provider-digitalocean-api v0.3.1-0.20210824075733-3b7fcae64cab
+kubeform.dev/apimachinery/pkg/util
+# kubeform.dev/provider-digitalocean-api v0.3.1-0.20210824193510-2b9844707aa6
 ## explicit
 kubeform.dev/provider-digitalocean-api/api/provider
 kubeform.dev/provider-digitalocean-api/apis/app
@@ -1263,7 +1263,6 @@ kubeform.dev/provider-digitalocean-api/client/clientset/versioned/typed/ssh/v1al
 kubeform.dev/provider-digitalocean-api/client/clientset/versioned/typed/tag/v1alpha1
 kubeform.dev/provider-digitalocean-api/client/clientset/versioned/typed/volume/v1alpha1
 kubeform.dev/provider-digitalocean-api/client/clientset/versioned/typed/vpc/v1alpha1
-kubeform.dev/provider-digitalocean-api/util
 # sigs.k8s.io/cli-utils v0.25.0
 ## explicit
 sigs.k8s.io/cli-utils/pkg/kstatus/status
