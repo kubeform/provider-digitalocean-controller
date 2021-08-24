@@ -88,7 +88,7 @@ var runningControllers = struct {
 	mp map[schema.GroupVersionKind]bool
 }{mp: make(map[schema.GroupVersionKind]bool)}
 
-func watchCRD(ctx context.Context, crdClient *clientset.Clientset, vwcClient *admissionregistrationv1.AdmissionregistrationV1Client, stopCh <-chan struct{}, mgr manager.Manager, auditor *auditlib.EventPublisher, watchOnlyDefault bool) error {
+func watchCRD(ctx context.Context, crdClient *clientset.Clientset, vwcClient *admissionregistrationv1.AdmissionregistrationV1Client, stopCh <-chan struct{}, mgr manager.Manager, auditor *auditlib.EventPublisher, restrictToNamespace string) error {
 	informerFactory := informers.NewSharedInformerFactory(crdClient, time.Second*30)
 	i := informerFactory.Apiextensions().V1().CustomResourceDefinitions().Informer()
 	l := informerFactory.Apiextensions().V1().CustomResourceDefinitions().Lister()
@@ -154,7 +154,7 @@ func watchCRD(ctx context.Context, crdClient *clientset.Clientset, vwcClient *ad
 						}
 					}
 
-					err = SetupManager(ctx, mgr, gvk, auditor, watchOnlyDefault)
+					err = SetupManager(ctx, mgr, gvk, auditor, restrictToNamespace)
 					if err != nil {
 						setupLog.Error(err, "unable to start manager")
 						os.Exit(1)
@@ -213,6 +213,7 @@ func updateVWC(vwcClient *admissionregistrationv1.AdmissionregistrationV1Client,
 		{
 			Operations: []arv1.OperationType{
 				arv1.Delete,
+				arv1.Update,
 			},
 			Rule: arv1.Rule{
 				APIGroups:   []string{strings.ToLower(gvk.Group)},
@@ -260,7 +261,7 @@ func updateVWC(vwcClient *admissionregistrationv1.AdmissionregistrationV1Client,
 	return nil
 }
 
-func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVersionKind, auditor *auditlib.EventPublisher, watchOnlyDefault bool) error {
+func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVersionKind, auditor *auditlib.EventPublisher, restrictToNamespace string) error {
 	switch gvk {
 	case schema.GroupVersionKind{
 		Group:   "app.digitalocean.kubeform.com",
@@ -268,15 +269,14 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 		Kind:    "App",
 	}:
 		if err := (&controllersapp.AppReconciler{
-			Client:           mgr.GetClient(),
-			Log:              ctrl.Log.WithName("controllers").WithName("App"),
-			Scheme:           mgr.GetScheme(),
-			Gvk:              gvk,
-			Provider:         _provider,
-			Resource:         _provider.ResourcesMap["digitalocean_app"],
-			TypeName:         "digitalocean_app",
-			WatchOnlyDefault: watchOnlyDefault,
-		}).SetupWithManager(ctx, mgr, auditor); err != nil {
+			Client:   mgr.GetClient(),
+			Log:      ctrl.Log.WithName("controllers").WithName("App"),
+			Scheme:   mgr.GetScheme(),
+			Gvk:      gvk,
+			Provider: _provider,
+			Resource: _provider.ResourcesMap["digitalocean_app"],
+			TypeName: "digitalocean_app",
+		}).SetupWithManager(ctx, mgr, auditor, restrictToNamespace); err != nil {
 			setupLog.Error(err, "unable to create controller", "controller", "App")
 			return err
 		}
@@ -286,15 +286,14 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 		Kind:    "Cdn",
 	}:
 		if err := (&controllerscdn.CdnReconciler{
-			Client:           mgr.GetClient(),
-			Log:              ctrl.Log.WithName("controllers").WithName("Cdn"),
-			Scheme:           mgr.GetScheme(),
-			Gvk:              gvk,
-			Provider:         _provider,
-			Resource:         _provider.ResourcesMap["digitalocean_cdn"],
-			TypeName:         "digitalocean_cdn",
-			WatchOnlyDefault: watchOnlyDefault,
-		}).SetupWithManager(ctx, mgr, auditor); err != nil {
+			Client:   mgr.GetClient(),
+			Log:      ctrl.Log.WithName("controllers").WithName("Cdn"),
+			Scheme:   mgr.GetScheme(),
+			Gvk:      gvk,
+			Provider: _provider,
+			Resource: _provider.ResourcesMap["digitalocean_cdn"],
+			TypeName: "digitalocean_cdn",
+		}).SetupWithManager(ctx, mgr, auditor, restrictToNamespace); err != nil {
 			setupLog.Error(err, "unable to create controller", "controller", "Cdn")
 			return err
 		}
@@ -304,15 +303,14 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 		Kind:    "Certificate",
 	}:
 		if err := (&controllerscertificate.CertificateReconciler{
-			Client:           mgr.GetClient(),
-			Log:              ctrl.Log.WithName("controllers").WithName("Certificate"),
-			Scheme:           mgr.GetScheme(),
-			Gvk:              gvk,
-			Provider:         _provider,
-			Resource:         _provider.ResourcesMap["digitalocean_certificate"],
-			TypeName:         "digitalocean_certificate",
-			WatchOnlyDefault: watchOnlyDefault,
-		}).SetupWithManager(ctx, mgr, auditor); err != nil {
+			Client:   mgr.GetClient(),
+			Log:      ctrl.Log.WithName("controllers").WithName("Certificate"),
+			Scheme:   mgr.GetScheme(),
+			Gvk:      gvk,
+			Provider: _provider,
+			Resource: _provider.ResourcesMap["digitalocean_certificate"],
+			TypeName: "digitalocean_certificate",
+		}).SetupWithManager(ctx, mgr, auditor, restrictToNamespace); err != nil {
 			setupLog.Error(err, "unable to create controller", "controller", "Certificate")
 			return err
 		}
@@ -322,15 +320,14 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 		Kind:    "ContainerRegistry",
 	}:
 		if err := (&controllerscontainerregistry.ContainerRegistryReconciler{
-			Client:           mgr.GetClient(),
-			Log:              ctrl.Log.WithName("controllers").WithName("ContainerRegistry"),
-			Scheme:           mgr.GetScheme(),
-			Gvk:              gvk,
-			Provider:         _provider,
-			Resource:         _provider.ResourcesMap["digitalocean_container_registry"],
-			TypeName:         "digitalocean_container_registry",
-			WatchOnlyDefault: watchOnlyDefault,
-		}).SetupWithManager(ctx, mgr, auditor); err != nil {
+			Client:   mgr.GetClient(),
+			Log:      ctrl.Log.WithName("controllers").WithName("ContainerRegistry"),
+			Scheme:   mgr.GetScheme(),
+			Gvk:      gvk,
+			Provider: _provider,
+			Resource: _provider.ResourcesMap["digitalocean_container_registry"],
+			TypeName: "digitalocean_container_registry",
+		}).SetupWithManager(ctx, mgr, auditor, restrictToNamespace); err != nil {
 			setupLog.Error(err, "unable to create controller", "controller", "ContainerRegistry")
 			return err
 		}
@@ -340,15 +337,14 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 		Kind:    "DockerCredentials",
 	}:
 		if err := (&controllerscontainerregistry.DockerCredentialsReconciler{
-			Client:           mgr.GetClient(),
-			Log:              ctrl.Log.WithName("controllers").WithName("DockerCredentials"),
-			Scheme:           mgr.GetScheme(),
-			Gvk:              gvk,
-			Provider:         _provider,
-			Resource:         _provider.ResourcesMap["digitalocean_container_registry_docker_credentials"],
-			TypeName:         "digitalocean_container_registry_docker_credentials",
-			WatchOnlyDefault: watchOnlyDefault,
-		}).SetupWithManager(ctx, mgr, auditor); err != nil {
+			Client:   mgr.GetClient(),
+			Log:      ctrl.Log.WithName("controllers").WithName("DockerCredentials"),
+			Scheme:   mgr.GetScheme(),
+			Gvk:      gvk,
+			Provider: _provider,
+			Resource: _provider.ResourcesMap["digitalocean_container_registry_docker_credentials"],
+			TypeName: "digitalocean_container_registry_docker_credentials",
+		}).SetupWithManager(ctx, mgr, auditor, restrictToNamespace); err != nil {
 			setupLog.Error(err, "unable to create controller", "controller", "DockerCredentials")
 			return err
 		}
@@ -358,15 +354,14 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 		Kind:    "Image",
 	}:
 		if err := (&controllerscustom.ImageReconciler{
-			Client:           mgr.GetClient(),
-			Log:              ctrl.Log.WithName("controllers").WithName("Image"),
-			Scheme:           mgr.GetScheme(),
-			Gvk:              gvk,
-			Provider:         _provider,
-			Resource:         _provider.ResourcesMap["digitalocean_custom_image"],
-			TypeName:         "digitalocean_custom_image",
-			WatchOnlyDefault: watchOnlyDefault,
-		}).SetupWithManager(ctx, mgr, auditor); err != nil {
+			Client:   mgr.GetClient(),
+			Log:      ctrl.Log.WithName("controllers").WithName("Image"),
+			Scheme:   mgr.GetScheme(),
+			Gvk:      gvk,
+			Provider: _provider,
+			Resource: _provider.ResourcesMap["digitalocean_custom_image"],
+			TypeName: "digitalocean_custom_image",
+		}).SetupWithManager(ctx, mgr, auditor, restrictToNamespace); err != nil {
 			setupLog.Error(err, "unable to create controller", "controller", "Image")
 			return err
 		}
@@ -376,15 +371,14 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 		Kind:    "Cluster",
 	}:
 		if err := (&controllersdatabase.ClusterReconciler{
-			Client:           mgr.GetClient(),
-			Log:              ctrl.Log.WithName("controllers").WithName("Cluster"),
-			Scheme:           mgr.GetScheme(),
-			Gvk:              gvk,
-			Provider:         _provider,
-			Resource:         _provider.ResourcesMap["digitalocean_database_cluster"],
-			TypeName:         "digitalocean_database_cluster",
-			WatchOnlyDefault: watchOnlyDefault,
-		}).SetupWithManager(ctx, mgr, auditor); err != nil {
+			Client:   mgr.GetClient(),
+			Log:      ctrl.Log.WithName("controllers").WithName("Cluster"),
+			Scheme:   mgr.GetScheme(),
+			Gvk:      gvk,
+			Provider: _provider,
+			Resource: _provider.ResourcesMap["digitalocean_database_cluster"],
+			TypeName: "digitalocean_database_cluster",
+		}).SetupWithManager(ctx, mgr, auditor, restrictToNamespace); err != nil {
 			setupLog.Error(err, "unable to create controller", "controller", "Cluster")
 			return err
 		}
@@ -394,15 +388,14 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 		Kind:    "ConnectionPool",
 	}:
 		if err := (&controllersdatabase.ConnectionPoolReconciler{
-			Client:           mgr.GetClient(),
-			Log:              ctrl.Log.WithName("controllers").WithName("ConnectionPool"),
-			Scheme:           mgr.GetScheme(),
-			Gvk:              gvk,
-			Provider:         _provider,
-			Resource:         _provider.ResourcesMap["digitalocean_database_connection_pool"],
-			TypeName:         "digitalocean_database_connection_pool",
-			WatchOnlyDefault: watchOnlyDefault,
-		}).SetupWithManager(ctx, mgr, auditor); err != nil {
+			Client:   mgr.GetClient(),
+			Log:      ctrl.Log.WithName("controllers").WithName("ConnectionPool"),
+			Scheme:   mgr.GetScheme(),
+			Gvk:      gvk,
+			Provider: _provider,
+			Resource: _provider.ResourcesMap["digitalocean_database_connection_pool"],
+			TypeName: "digitalocean_database_connection_pool",
+		}).SetupWithManager(ctx, mgr, auditor, restrictToNamespace); err != nil {
 			setupLog.Error(err, "unable to create controller", "controller", "ConnectionPool")
 			return err
 		}
@@ -412,15 +405,14 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 		Kind:    "Db",
 	}:
 		if err := (&controllersdatabase.DbReconciler{
-			Client:           mgr.GetClient(),
-			Log:              ctrl.Log.WithName("controllers").WithName("Db"),
-			Scheme:           mgr.GetScheme(),
-			Gvk:              gvk,
-			Provider:         _provider,
-			Resource:         _provider.ResourcesMap["digitalocean_database_db"],
-			TypeName:         "digitalocean_database_db",
-			WatchOnlyDefault: watchOnlyDefault,
-		}).SetupWithManager(ctx, mgr, auditor); err != nil {
+			Client:   mgr.GetClient(),
+			Log:      ctrl.Log.WithName("controllers").WithName("Db"),
+			Scheme:   mgr.GetScheme(),
+			Gvk:      gvk,
+			Provider: _provider,
+			Resource: _provider.ResourcesMap["digitalocean_database_db"],
+			TypeName: "digitalocean_database_db",
+		}).SetupWithManager(ctx, mgr, auditor, restrictToNamespace); err != nil {
 			setupLog.Error(err, "unable to create controller", "controller", "Db")
 			return err
 		}
@@ -430,15 +422,14 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 		Kind:    "Firewall",
 	}:
 		if err := (&controllersdatabase.FirewallReconciler{
-			Client:           mgr.GetClient(),
-			Log:              ctrl.Log.WithName("controllers").WithName("Firewall"),
-			Scheme:           mgr.GetScheme(),
-			Gvk:              gvk,
-			Provider:         _provider,
-			Resource:         _provider.ResourcesMap["digitalocean_database_firewall"],
-			TypeName:         "digitalocean_database_firewall",
-			WatchOnlyDefault: watchOnlyDefault,
-		}).SetupWithManager(ctx, mgr, auditor); err != nil {
+			Client:   mgr.GetClient(),
+			Log:      ctrl.Log.WithName("controllers").WithName("Firewall"),
+			Scheme:   mgr.GetScheme(),
+			Gvk:      gvk,
+			Provider: _provider,
+			Resource: _provider.ResourcesMap["digitalocean_database_firewall"],
+			TypeName: "digitalocean_database_firewall",
+		}).SetupWithManager(ctx, mgr, auditor, restrictToNamespace); err != nil {
 			setupLog.Error(err, "unable to create controller", "controller", "Firewall")
 			return err
 		}
@@ -448,15 +439,14 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 		Kind:    "Replica",
 	}:
 		if err := (&controllersdatabase.ReplicaReconciler{
-			Client:           mgr.GetClient(),
-			Log:              ctrl.Log.WithName("controllers").WithName("Replica"),
-			Scheme:           mgr.GetScheme(),
-			Gvk:              gvk,
-			Provider:         _provider,
-			Resource:         _provider.ResourcesMap["digitalocean_database_replica"],
-			TypeName:         "digitalocean_database_replica",
-			WatchOnlyDefault: watchOnlyDefault,
-		}).SetupWithManager(ctx, mgr, auditor); err != nil {
+			Client:   mgr.GetClient(),
+			Log:      ctrl.Log.WithName("controllers").WithName("Replica"),
+			Scheme:   mgr.GetScheme(),
+			Gvk:      gvk,
+			Provider: _provider,
+			Resource: _provider.ResourcesMap["digitalocean_database_replica"],
+			TypeName: "digitalocean_database_replica",
+		}).SetupWithManager(ctx, mgr, auditor, restrictToNamespace); err != nil {
 			setupLog.Error(err, "unable to create controller", "controller", "Replica")
 			return err
 		}
@@ -466,15 +456,14 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 		Kind:    "User",
 	}:
 		if err := (&controllersdatabase.UserReconciler{
-			Client:           mgr.GetClient(),
-			Log:              ctrl.Log.WithName("controllers").WithName("User"),
-			Scheme:           mgr.GetScheme(),
-			Gvk:              gvk,
-			Provider:         _provider,
-			Resource:         _provider.ResourcesMap["digitalocean_database_user"],
-			TypeName:         "digitalocean_database_user",
-			WatchOnlyDefault: watchOnlyDefault,
-		}).SetupWithManager(ctx, mgr, auditor); err != nil {
+			Client:   mgr.GetClient(),
+			Log:      ctrl.Log.WithName("controllers").WithName("User"),
+			Scheme:   mgr.GetScheme(),
+			Gvk:      gvk,
+			Provider: _provider,
+			Resource: _provider.ResourcesMap["digitalocean_database_user"],
+			TypeName: "digitalocean_database_user",
+		}).SetupWithManager(ctx, mgr, auditor, restrictToNamespace); err != nil {
 			setupLog.Error(err, "unable to create controller", "controller", "User")
 			return err
 		}
@@ -484,15 +473,14 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 		Kind:    "Domain",
 	}:
 		if err := (&controllersdomain.DomainReconciler{
-			Client:           mgr.GetClient(),
-			Log:              ctrl.Log.WithName("controllers").WithName("Domain"),
-			Scheme:           mgr.GetScheme(),
-			Gvk:              gvk,
-			Provider:         _provider,
-			Resource:         _provider.ResourcesMap["digitalocean_domain"],
-			TypeName:         "digitalocean_domain",
-			WatchOnlyDefault: watchOnlyDefault,
-		}).SetupWithManager(ctx, mgr, auditor); err != nil {
+			Client:   mgr.GetClient(),
+			Log:      ctrl.Log.WithName("controllers").WithName("Domain"),
+			Scheme:   mgr.GetScheme(),
+			Gvk:      gvk,
+			Provider: _provider,
+			Resource: _provider.ResourcesMap["digitalocean_domain"],
+			TypeName: "digitalocean_domain",
+		}).SetupWithManager(ctx, mgr, auditor, restrictToNamespace); err != nil {
 			setupLog.Error(err, "unable to create controller", "controller", "Domain")
 			return err
 		}
@@ -502,15 +490,14 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 		Kind:    "Droplet",
 	}:
 		if err := (&controllersdroplet.DropletReconciler{
-			Client:           mgr.GetClient(),
-			Log:              ctrl.Log.WithName("controllers").WithName("Droplet"),
-			Scheme:           mgr.GetScheme(),
-			Gvk:              gvk,
-			Provider:         _provider,
-			Resource:         _provider.ResourcesMap["digitalocean_droplet"],
-			TypeName:         "digitalocean_droplet",
-			WatchOnlyDefault: watchOnlyDefault,
-		}).SetupWithManager(ctx, mgr, auditor); err != nil {
+			Client:   mgr.GetClient(),
+			Log:      ctrl.Log.WithName("controllers").WithName("Droplet"),
+			Scheme:   mgr.GetScheme(),
+			Gvk:      gvk,
+			Provider: _provider,
+			Resource: _provider.ResourcesMap["digitalocean_droplet"],
+			TypeName: "digitalocean_droplet",
+		}).SetupWithManager(ctx, mgr, auditor, restrictToNamespace); err != nil {
 			setupLog.Error(err, "unable to create controller", "controller", "Droplet")
 			return err
 		}
@@ -520,15 +507,14 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 		Kind:    "Snapshot",
 	}:
 		if err := (&controllersdroplet.SnapshotReconciler{
-			Client:           mgr.GetClient(),
-			Log:              ctrl.Log.WithName("controllers").WithName("Snapshot"),
-			Scheme:           mgr.GetScheme(),
-			Gvk:              gvk,
-			Provider:         _provider,
-			Resource:         _provider.ResourcesMap["digitalocean_droplet_snapshot"],
-			TypeName:         "digitalocean_droplet_snapshot",
-			WatchOnlyDefault: watchOnlyDefault,
-		}).SetupWithManager(ctx, mgr, auditor); err != nil {
+			Client:   mgr.GetClient(),
+			Log:      ctrl.Log.WithName("controllers").WithName("Snapshot"),
+			Scheme:   mgr.GetScheme(),
+			Gvk:      gvk,
+			Provider: _provider,
+			Resource: _provider.ResourcesMap["digitalocean_droplet_snapshot"],
+			TypeName: "digitalocean_droplet_snapshot",
+		}).SetupWithManager(ctx, mgr, auditor, restrictToNamespace); err != nil {
 			setupLog.Error(err, "unable to create controller", "controller", "Snapshot")
 			return err
 		}
@@ -538,15 +524,14 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 		Kind:    "Firewall",
 	}:
 		if err := (&controllersfirewall.FirewallReconciler{
-			Client:           mgr.GetClient(),
-			Log:              ctrl.Log.WithName("controllers").WithName("Firewall"),
-			Scheme:           mgr.GetScheme(),
-			Gvk:              gvk,
-			Provider:         _provider,
-			Resource:         _provider.ResourcesMap["digitalocean_firewall"],
-			TypeName:         "digitalocean_firewall",
-			WatchOnlyDefault: watchOnlyDefault,
-		}).SetupWithManager(ctx, mgr, auditor); err != nil {
+			Client:   mgr.GetClient(),
+			Log:      ctrl.Log.WithName("controllers").WithName("Firewall"),
+			Scheme:   mgr.GetScheme(),
+			Gvk:      gvk,
+			Provider: _provider,
+			Resource: _provider.ResourcesMap["digitalocean_firewall"],
+			TypeName: "digitalocean_firewall",
+		}).SetupWithManager(ctx, mgr, auditor, restrictToNamespace); err != nil {
 			setupLog.Error(err, "unable to create controller", "controller", "Firewall")
 			return err
 		}
@@ -556,15 +541,14 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 		Kind:    "FloatingIP",
 	}:
 		if err := (&controllersfloatingip.FloatingIPReconciler{
-			Client:           mgr.GetClient(),
-			Log:              ctrl.Log.WithName("controllers").WithName("FloatingIP"),
-			Scheme:           mgr.GetScheme(),
-			Gvk:              gvk,
-			Provider:         _provider,
-			Resource:         _provider.ResourcesMap["digitalocean_floating_ip"],
-			TypeName:         "digitalocean_floating_ip",
-			WatchOnlyDefault: watchOnlyDefault,
-		}).SetupWithManager(ctx, mgr, auditor); err != nil {
+			Client:   mgr.GetClient(),
+			Log:      ctrl.Log.WithName("controllers").WithName("FloatingIP"),
+			Scheme:   mgr.GetScheme(),
+			Gvk:      gvk,
+			Provider: _provider,
+			Resource: _provider.ResourcesMap["digitalocean_floating_ip"],
+			TypeName: "digitalocean_floating_ip",
+		}).SetupWithManager(ctx, mgr, auditor, restrictToNamespace); err != nil {
 			setupLog.Error(err, "unable to create controller", "controller", "FloatingIP")
 			return err
 		}
@@ -574,15 +558,14 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 		Kind:    "Assignment",
 	}:
 		if err := (&controllersfloatingip.AssignmentReconciler{
-			Client:           mgr.GetClient(),
-			Log:              ctrl.Log.WithName("controllers").WithName("Assignment"),
-			Scheme:           mgr.GetScheme(),
-			Gvk:              gvk,
-			Provider:         _provider,
-			Resource:         _provider.ResourcesMap["digitalocean_floating_ip_assignment"],
-			TypeName:         "digitalocean_floating_ip_assignment",
-			WatchOnlyDefault: watchOnlyDefault,
-		}).SetupWithManager(ctx, mgr, auditor); err != nil {
+			Client:   mgr.GetClient(),
+			Log:      ctrl.Log.WithName("controllers").WithName("Assignment"),
+			Scheme:   mgr.GetScheme(),
+			Gvk:      gvk,
+			Provider: _provider,
+			Resource: _provider.ResourcesMap["digitalocean_floating_ip_assignment"],
+			TypeName: "digitalocean_floating_ip_assignment",
+		}).SetupWithManager(ctx, mgr, auditor, restrictToNamespace); err != nil {
 			setupLog.Error(err, "unable to create controller", "controller", "Assignment")
 			return err
 		}
@@ -592,15 +575,14 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 		Kind:    "Cluster",
 	}:
 		if err := (&controllerskubernetes.ClusterReconciler{
-			Client:           mgr.GetClient(),
-			Log:              ctrl.Log.WithName("controllers").WithName("Cluster"),
-			Scheme:           mgr.GetScheme(),
-			Gvk:              gvk,
-			Provider:         _provider,
-			Resource:         _provider.ResourcesMap["digitalocean_kubernetes_cluster"],
-			TypeName:         "digitalocean_kubernetes_cluster",
-			WatchOnlyDefault: watchOnlyDefault,
-		}).SetupWithManager(ctx, mgr, auditor); err != nil {
+			Client:   mgr.GetClient(),
+			Log:      ctrl.Log.WithName("controllers").WithName("Cluster"),
+			Scheme:   mgr.GetScheme(),
+			Gvk:      gvk,
+			Provider: _provider,
+			Resource: _provider.ResourcesMap["digitalocean_kubernetes_cluster"],
+			TypeName: "digitalocean_kubernetes_cluster",
+		}).SetupWithManager(ctx, mgr, auditor, restrictToNamespace); err != nil {
 			setupLog.Error(err, "unable to create controller", "controller", "Cluster")
 			return err
 		}
@@ -610,15 +592,14 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 		Kind:    "NodePool",
 	}:
 		if err := (&controllerskubernetes.NodePoolReconciler{
-			Client:           mgr.GetClient(),
-			Log:              ctrl.Log.WithName("controllers").WithName("NodePool"),
-			Scheme:           mgr.GetScheme(),
-			Gvk:              gvk,
-			Provider:         _provider,
-			Resource:         _provider.ResourcesMap["digitalocean_kubernetes_node_pool"],
-			TypeName:         "digitalocean_kubernetes_node_pool",
-			WatchOnlyDefault: watchOnlyDefault,
-		}).SetupWithManager(ctx, mgr, auditor); err != nil {
+			Client:   mgr.GetClient(),
+			Log:      ctrl.Log.WithName("controllers").WithName("NodePool"),
+			Scheme:   mgr.GetScheme(),
+			Gvk:      gvk,
+			Provider: _provider,
+			Resource: _provider.ResourcesMap["digitalocean_kubernetes_node_pool"],
+			TypeName: "digitalocean_kubernetes_node_pool",
+		}).SetupWithManager(ctx, mgr, auditor, restrictToNamespace); err != nil {
 			setupLog.Error(err, "unable to create controller", "controller", "NodePool")
 			return err
 		}
@@ -628,15 +609,14 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 		Kind:    "Loadbalancer",
 	}:
 		if err := (&controllersloadbalancer.LoadbalancerReconciler{
-			Client:           mgr.GetClient(),
-			Log:              ctrl.Log.WithName("controllers").WithName("Loadbalancer"),
-			Scheme:           mgr.GetScheme(),
-			Gvk:              gvk,
-			Provider:         _provider,
-			Resource:         _provider.ResourcesMap["digitalocean_loadbalancer"],
-			TypeName:         "digitalocean_loadbalancer",
-			WatchOnlyDefault: watchOnlyDefault,
-		}).SetupWithManager(ctx, mgr, auditor); err != nil {
+			Client:   mgr.GetClient(),
+			Log:      ctrl.Log.WithName("controllers").WithName("Loadbalancer"),
+			Scheme:   mgr.GetScheme(),
+			Gvk:      gvk,
+			Provider: _provider,
+			Resource: _provider.ResourcesMap["digitalocean_loadbalancer"],
+			TypeName: "digitalocean_loadbalancer",
+		}).SetupWithManager(ctx, mgr, auditor, restrictToNamespace); err != nil {
 			setupLog.Error(err, "unable to create controller", "controller", "Loadbalancer")
 			return err
 		}
@@ -646,15 +626,14 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 		Kind:    "Project",
 	}:
 		if err := (&controllersproject.ProjectReconciler{
-			Client:           mgr.GetClient(),
-			Log:              ctrl.Log.WithName("controllers").WithName("Project"),
-			Scheme:           mgr.GetScheme(),
-			Gvk:              gvk,
-			Provider:         _provider,
-			Resource:         _provider.ResourcesMap["digitalocean_project"],
-			TypeName:         "digitalocean_project",
-			WatchOnlyDefault: watchOnlyDefault,
-		}).SetupWithManager(ctx, mgr, auditor); err != nil {
+			Client:   mgr.GetClient(),
+			Log:      ctrl.Log.WithName("controllers").WithName("Project"),
+			Scheme:   mgr.GetScheme(),
+			Gvk:      gvk,
+			Provider: _provider,
+			Resource: _provider.ResourcesMap["digitalocean_project"],
+			TypeName: "digitalocean_project",
+		}).SetupWithManager(ctx, mgr, auditor, restrictToNamespace); err != nil {
 			setupLog.Error(err, "unable to create controller", "controller", "Project")
 			return err
 		}
@@ -664,15 +643,14 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 		Kind:    "Resources",
 	}:
 		if err := (&controllersproject.ResourcesReconciler{
-			Client:           mgr.GetClient(),
-			Log:              ctrl.Log.WithName("controllers").WithName("Resources"),
-			Scheme:           mgr.GetScheme(),
-			Gvk:              gvk,
-			Provider:         _provider,
-			Resource:         _provider.ResourcesMap["digitalocean_project_resources"],
-			TypeName:         "digitalocean_project_resources",
-			WatchOnlyDefault: watchOnlyDefault,
-		}).SetupWithManager(ctx, mgr, auditor); err != nil {
+			Client:   mgr.GetClient(),
+			Log:      ctrl.Log.WithName("controllers").WithName("Resources"),
+			Scheme:   mgr.GetScheme(),
+			Gvk:      gvk,
+			Provider: _provider,
+			Resource: _provider.ResourcesMap["digitalocean_project_resources"],
+			TypeName: "digitalocean_project_resources",
+		}).SetupWithManager(ctx, mgr, auditor, restrictToNamespace); err != nil {
 			setupLog.Error(err, "unable to create controller", "controller", "Resources")
 			return err
 		}
@@ -682,15 +660,14 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 		Kind:    "Record",
 	}:
 		if err := (&controllersrecord.RecordReconciler{
-			Client:           mgr.GetClient(),
-			Log:              ctrl.Log.WithName("controllers").WithName("Record"),
-			Scheme:           mgr.GetScheme(),
-			Gvk:              gvk,
-			Provider:         _provider,
-			Resource:         _provider.ResourcesMap["digitalocean_record"],
-			TypeName:         "digitalocean_record",
-			WatchOnlyDefault: watchOnlyDefault,
-		}).SetupWithManager(ctx, mgr, auditor); err != nil {
+			Client:   mgr.GetClient(),
+			Log:      ctrl.Log.WithName("controllers").WithName("Record"),
+			Scheme:   mgr.GetScheme(),
+			Gvk:      gvk,
+			Provider: _provider,
+			Resource: _provider.ResourcesMap["digitalocean_record"],
+			TypeName: "digitalocean_record",
+		}).SetupWithManager(ctx, mgr, auditor, restrictToNamespace); err != nil {
 			setupLog.Error(err, "unable to create controller", "controller", "Record")
 			return err
 		}
@@ -700,15 +677,14 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 		Kind:    "SpacesBucket",
 	}:
 		if err := (&controllersspacesbucket.SpacesBucketReconciler{
-			Client:           mgr.GetClient(),
-			Log:              ctrl.Log.WithName("controllers").WithName("SpacesBucket"),
-			Scheme:           mgr.GetScheme(),
-			Gvk:              gvk,
-			Provider:         _provider,
-			Resource:         _provider.ResourcesMap["digitalocean_spaces_bucket"],
-			TypeName:         "digitalocean_spaces_bucket",
-			WatchOnlyDefault: watchOnlyDefault,
-		}).SetupWithManager(ctx, mgr, auditor); err != nil {
+			Client:   mgr.GetClient(),
+			Log:      ctrl.Log.WithName("controllers").WithName("SpacesBucket"),
+			Scheme:   mgr.GetScheme(),
+			Gvk:      gvk,
+			Provider: _provider,
+			Resource: _provider.ResourcesMap["digitalocean_spaces_bucket"],
+			TypeName: "digitalocean_spaces_bucket",
+		}).SetupWithManager(ctx, mgr, auditor, restrictToNamespace); err != nil {
 			setupLog.Error(err, "unable to create controller", "controller", "SpacesBucket")
 			return err
 		}
@@ -718,15 +694,14 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 		Kind:    "Object",
 	}:
 		if err := (&controllersspacesbucket.ObjectReconciler{
-			Client:           mgr.GetClient(),
-			Log:              ctrl.Log.WithName("controllers").WithName("Object"),
-			Scheme:           mgr.GetScheme(),
-			Gvk:              gvk,
-			Provider:         _provider,
-			Resource:         _provider.ResourcesMap["digitalocean_spaces_bucket_object"],
-			TypeName:         "digitalocean_spaces_bucket_object",
-			WatchOnlyDefault: watchOnlyDefault,
-		}).SetupWithManager(ctx, mgr, auditor); err != nil {
+			Client:   mgr.GetClient(),
+			Log:      ctrl.Log.WithName("controllers").WithName("Object"),
+			Scheme:   mgr.GetScheme(),
+			Gvk:      gvk,
+			Provider: _provider,
+			Resource: _provider.ResourcesMap["digitalocean_spaces_bucket_object"],
+			TypeName: "digitalocean_spaces_bucket_object",
+		}).SetupWithManager(ctx, mgr, auditor, restrictToNamespace); err != nil {
 			setupLog.Error(err, "unable to create controller", "controller", "Object")
 			return err
 		}
@@ -736,15 +711,14 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 		Kind:    "Key",
 	}:
 		if err := (&controllersssh.KeyReconciler{
-			Client:           mgr.GetClient(),
-			Log:              ctrl.Log.WithName("controllers").WithName("Key"),
-			Scheme:           mgr.GetScheme(),
-			Gvk:              gvk,
-			Provider:         _provider,
-			Resource:         _provider.ResourcesMap["digitalocean_ssh_key"],
-			TypeName:         "digitalocean_ssh_key",
-			WatchOnlyDefault: watchOnlyDefault,
-		}).SetupWithManager(ctx, mgr, auditor); err != nil {
+			Client:   mgr.GetClient(),
+			Log:      ctrl.Log.WithName("controllers").WithName("Key"),
+			Scheme:   mgr.GetScheme(),
+			Gvk:      gvk,
+			Provider: _provider,
+			Resource: _provider.ResourcesMap["digitalocean_ssh_key"],
+			TypeName: "digitalocean_ssh_key",
+		}).SetupWithManager(ctx, mgr, auditor, restrictToNamespace); err != nil {
 			setupLog.Error(err, "unable to create controller", "controller", "Key")
 			return err
 		}
@@ -754,15 +728,14 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 		Kind:    "Tag",
 	}:
 		if err := (&controllerstag.TagReconciler{
-			Client:           mgr.GetClient(),
-			Log:              ctrl.Log.WithName("controllers").WithName("Tag"),
-			Scheme:           mgr.GetScheme(),
-			Gvk:              gvk,
-			Provider:         _provider,
-			Resource:         _provider.ResourcesMap["digitalocean_tag"],
-			TypeName:         "digitalocean_tag",
-			WatchOnlyDefault: watchOnlyDefault,
-		}).SetupWithManager(ctx, mgr, auditor); err != nil {
+			Client:   mgr.GetClient(),
+			Log:      ctrl.Log.WithName("controllers").WithName("Tag"),
+			Scheme:   mgr.GetScheme(),
+			Gvk:      gvk,
+			Provider: _provider,
+			Resource: _provider.ResourcesMap["digitalocean_tag"],
+			TypeName: "digitalocean_tag",
+		}).SetupWithManager(ctx, mgr, auditor, restrictToNamespace); err != nil {
 			setupLog.Error(err, "unable to create controller", "controller", "Tag")
 			return err
 		}
@@ -772,15 +745,14 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 		Kind:    "Volume",
 	}:
 		if err := (&controllersvolume.VolumeReconciler{
-			Client:           mgr.GetClient(),
-			Log:              ctrl.Log.WithName("controllers").WithName("Volume"),
-			Scheme:           mgr.GetScheme(),
-			Gvk:              gvk,
-			Provider:         _provider,
-			Resource:         _provider.ResourcesMap["digitalocean_volume"],
-			TypeName:         "digitalocean_volume",
-			WatchOnlyDefault: watchOnlyDefault,
-		}).SetupWithManager(ctx, mgr, auditor); err != nil {
+			Client:   mgr.GetClient(),
+			Log:      ctrl.Log.WithName("controllers").WithName("Volume"),
+			Scheme:   mgr.GetScheme(),
+			Gvk:      gvk,
+			Provider: _provider,
+			Resource: _provider.ResourcesMap["digitalocean_volume"],
+			TypeName: "digitalocean_volume",
+		}).SetupWithManager(ctx, mgr, auditor, restrictToNamespace); err != nil {
 			setupLog.Error(err, "unable to create controller", "controller", "Volume")
 			return err
 		}
@@ -790,15 +762,14 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 		Kind:    "Attachment",
 	}:
 		if err := (&controllersvolume.AttachmentReconciler{
-			Client:           mgr.GetClient(),
-			Log:              ctrl.Log.WithName("controllers").WithName("Attachment"),
-			Scheme:           mgr.GetScheme(),
-			Gvk:              gvk,
-			Provider:         _provider,
-			Resource:         _provider.ResourcesMap["digitalocean_volume_attachment"],
-			TypeName:         "digitalocean_volume_attachment",
-			WatchOnlyDefault: watchOnlyDefault,
-		}).SetupWithManager(ctx, mgr, auditor); err != nil {
+			Client:   mgr.GetClient(),
+			Log:      ctrl.Log.WithName("controllers").WithName("Attachment"),
+			Scheme:   mgr.GetScheme(),
+			Gvk:      gvk,
+			Provider: _provider,
+			Resource: _provider.ResourcesMap["digitalocean_volume_attachment"],
+			TypeName: "digitalocean_volume_attachment",
+		}).SetupWithManager(ctx, mgr, auditor, restrictToNamespace); err != nil {
 			setupLog.Error(err, "unable to create controller", "controller", "Attachment")
 			return err
 		}
@@ -808,15 +779,14 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 		Kind:    "Snapshot",
 	}:
 		if err := (&controllersvolume.SnapshotReconciler{
-			Client:           mgr.GetClient(),
-			Log:              ctrl.Log.WithName("controllers").WithName("Snapshot"),
-			Scheme:           mgr.GetScheme(),
-			Gvk:              gvk,
-			Provider:         _provider,
-			Resource:         _provider.ResourcesMap["digitalocean_volume_snapshot"],
-			TypeName:         "digitalocean_volume_snapshot",
-			WatchOnlyDefault: watchOnlyDefault,
-		}).SetupWithManager(ctx, mgr, auditor); err != nil {
+			Client:   mgr.GetClient(),
+			Log:      ctrl.Log.WithName("controllers").WithName("Snapshot"),
+			Scheme:   mgr.GetScheme(),
+			Gvk:      gvk,
+			Provider: _provider,
+			Resource: _provider.ResourcesMap["digitalocean_volume_snapshot"],
+			TypeName: "digitalocean_volume_snapshot",
+		}).SetupWithManager(ctx, mgr, auditor, restrictToNamespace); err != nil {
 			setupLog.Error(err, "unable to create controller", "controller", "Snapshot")
 			return err
 		}
@@ -826,15 +796,14 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 		Kind:    "Vpc",
 	}:
 		if err := (&controllersvpc.VpcReconciler{
-			Client:           mgr.GetClient(),
-			Log:              ctrl.Log.WithName("controllers").WithName("Vpc"),
-			Scheme:           mgr.GetScheme(),
-			Gvk:              gvk,
-			Provider:         _provider,
-			Resource:         _provider.ResourcesMap["digitalocean_vpc"],
-			TypeName:         "digitalocean_vpc",
-			WatchOnlyDefault: watchOnlyDefault,
-		}).SetupWithManager(ctx, mgr, auditor); err != nil {
+			Client:   mgr.GetClient(),
+			Log:      ctrl.Log.WithName("controllers").WithName("Vpc"),
+			Scheme:   mgr.GetScheme(),
+			Gvk:      gvk,
+			Provider: _provider,
+			Resource: _provider.ResourcesMap["digitalocean_vpc"],
+			TypeName: "digitalocean_vpc",
+		}).SetupWithManager(ctx, mgr, auditor, restrictToNamespace); err != nil {
 			setupLog.Error(err, "unable to create controller", "controller", "Vpc")
 			return err
 		}
