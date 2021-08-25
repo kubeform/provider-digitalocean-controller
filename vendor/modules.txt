@@ -1201,7 +1201,7 @@ kmodules.xyz/resource-metadata/pkg/graph
 ## explicit
 kubeform.dev/apimachinery/api/v1alpha1
 kubeform.dev/apimachinery/pkg/util
-# kubeform.dev/provider-digitalocean-api v0.3.1-0.20210824193510-2b9844707aa6
+# kubeform.dev/provider-digitalocean-api v0.3.1-0.20210824194615-17f3c7b8ea0e
 ## explicit
 kubeform.dev/provider-digitalocean-api/api/provider
 kubeform.dev/provider-digitalocean-api/apis/app
