@@ -19,7 +19,7 @@ func resourceDigitalOceanApp() *schema.Resource {
 		UpdateContext: resourceDigitalOceanAppUpdate,
 		DeleteContext: resourceDigitalOceanAppDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -65,6 +65,10 @@ func resourceDigitalOceanApp() *schema.Resource {
 				Description: "The date and time of when the App was created",
 			},
 		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+		},
 	}
 }
 
@@ -81,8 +85,8 @@ func resourceDigitalOceanAppCreate(ctx context.Context, d *schema.ResourceData, 
 
 	d.SetId(app.ID)
 	log.Printf("[DEBUG] Waiting for app (%s) deployment to become active", app.ID)
-
-	err = waitForAppDeployment(client, app.ID)
+	timeout := d.Timeout(schema.TimeoutCreate)
+	err = waitForAppDeployment(client, app.ID, timeout)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -108,12 +112,17 @@ func resourceDigitalOceanAppRead(ctx context.Context, d *schema.ResourceData, me
 	d.SetId(app.ID)
 	d.Set("default_ingress", app.DefaultIngress)
 	d.Set("live_url", app.LiveURL)
-	d.Set("active_deployment_id", app.ActiveDeployment.ID)
 	d.Set("updated_at", app.UpdatedAt.UTC().String())
 	d.Set("created_at", app.CreatedAt.UTC().String())
 
 	if err := d.Set("spec", flattenAppSpec(d, app.Spec)); err != nil {
-		return diag.Errorf("[DEBUG] Error setting app spec: %#v", err)
+		return diag.Errorf("Error setting app spec: %#v", err)
+	}
+
+	if app.ActiveDeployment != nil {
+		d.Set("active_deployment_id", app.ActiveDeployment.ID)
+	} else {
+		return diag.Errorf("No active deployment found for app: %s (%s)", app.Spec.Name, app.ID)
 	}
 
 	return nil
@@ -132,7 +141,8 @@ func resourceDigitalOceanAppUpdate(ctx context.Context, d *schema.ResourceData, 
 		}
 
 		log.Printf("[DEBUG] Waiting for app (%s) deployment to become active", app.ID)
-		err = waitForAppDeployment(client, app.ID)
+		timeout := d.Timeout(schema.TimeoutCreate)
+		err = waitForAppDeployment(client, app.ID, timeout)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -156,15 +166,15 @@ func resourceDigitalOceanAppDelete(ctx context.Context, d *schema.ResourceData, 
 	return nil
 }
 
-func waitForAppDeployment(client *godo.Client, id string) error {
+func waitForAppDeployment(client *godo.Client, id string, timeout time.Duration) error {
 	tickerInterval := 10 //10s
-	timeout := 1800      //1800s, 30min
+	timeoutSeconds := int(timeout.Seconds())
 	n := 0
 
 	var deploymentID string
 	ticker := time.NewTicker(time.Duration(tickerInterval) * time.Second)
 	for range ticker.C {
-		if n*tickerInterval > timeout {
+		if n*tickerInterval > timeoutSeconds {
 			ticker.Stop()
 			break
 		}
@@ -204,5 +214,5 @@ func waitForAppDeployment(client *godo.Client, id string) error {
 		n++
 	}
 
-	return fmt.Errorf("timeout waiting to app (%s) deployment", id)
+	return fmt.Errorf("timeout waiting for app (%s) deployment", id)
 }

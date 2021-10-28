@@ -63,6 +63,12 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
+			"graceful_shutdown": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"created_at": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -132,9 +138,10 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 			},
 
 			"private_networking": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
+				Type:       schema.TypeBool,
+				Optional:   true,
+				Computed:   true,
+				Deprecated: "This parameter has been deprecated. Use `vpc_uuid` instead to specify a VPC network for the Droplet. If no `vpc_uuid` is provided, the Droplet will be placed in your account's default VPC for the region.",
 			},
 
 			"ipv4_address": {
@@ -181,6 +188,12 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 				Default:  false,
+			},
+
+			"droplet_agent": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
 			},
 
 			"tags": tagsSchema(),
@@ -254,6 +267,10 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 		opts.Monitoring = attr.(bool)
 	}
 
+	if attr, ok := d.GetOk("droplet_agent"); ok {
+		opts.WithDropletAgent = boolPtr(attr.(bool))
+	}
+
 	if attr, ok := d.GetOk("vpc_uuid"); ok {
 		opts.VPCUUID = attr.(string)
 	}
@@ -280,7 +297,7 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 
 	log.Printf("[INFO] Droplet ID: %s", d.Id())
 
-	_, err = waitForDropletAttribute(d, "active", []string{"new"}, "status", meta)
+	_, err = waitForDropletAttribute(ctx, d, "active", []string{"new"}, "status", meta)
 	if err != nil {
 		return diag.Errorf(
 			"Error waiting for droplet (%s) to become ready: %s", d.Id(), err)
@@ -363,21 +380,19 @@ func resourceDigitalOceanDropletImport(d *schema.ResourceData, meta interface{})
 		return nil, fmt.Errorf("Invalid droplet id: %v", err)
 	}
 
-	droplet, resp, err := client.Droplets.Get(context.Background(), id)
-	if resp.StatusCode != 404 {
-		if err != nil {
-			return nil, fmt.Errorf("Error importing droplet: %s", err)
-		}
-
-		if droplet.Image.Slug != "" {
-			d.Set("image", droplet.Image.Slug)
-		} else {
-			d.Set("image", godo.Stringify(droplet.Image.ID))
-		}
-
-		// This is a non API attribute. So set to the default setting in the schema.
-		d.Set("resize_disk", true)
+	droplet, _, err := client.Droplets.Get(context.Background(), id)
+	if err != nil {
+		return nil, fmt.Errorf("Error importing droplet: %s", err)
 	}
+
+	if droplet.Image.Slug != "" {
+		d.Set("image", droplet.Image.Slug)
+	} else {
+		d.Set("image", godo.Stringify(droplet.Image.ID))
+	}
+
+	// This is a non API attribute. So set to the default setting in the schema.
+	d.Set("resize_disk", true)
 
 	return []*schema.ResourceData{d}, nil
 }
@@ -423,7 +438,7 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 		}
 
 		// Wait for power off
-		_, err = waitForDropletAttribute(d, "off", []string{"active"}, "status", meta)
+		_, err = waitForDropletAttribute(ctx, d, "off", []string{"active"}, "status", meta)
 		if err != nil {
 			return diag.Errorf(
 				"Error waiting for droplet (%s) to become powered off: %s", d.Id(), err)
@@ -433,7 +448,7 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 		var action *godo.Action
 		action, _, err = client.DropletActions.Resize(context.Background(), id, newSize.(string), resizeDisk)
 		if err != nil {
-			newErr := powerOnAndWait(d, meta)
+			newErr := powerOnAndWait(ctx, d, meta)
 			if newErr != nil {
 				return diag.Errorf(
 					"Error powering on droplet (%s) after failed resize: %s", d.Id(), err)
@@ -444,7 +459,7 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 
 		// Wait for the resize action to complete.
 		if err = waitForAction(client, action); err != nil {
-			newErr := powerOnAndWait(d, meta)
+			newErr := powerOnAndWait(ctx, d, meta)
 			if newErr != nil {
 				return diag.Errorf(
 					"Error powering on droplet (%s) after waiting for resize to finish: %s", d.Id(), err)
@@ -461,7 +476,7 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 		}
 
 		// Wait for power off
-		_, err = waitForDropletAttribute(d, "active", []string{"off"}, "status", meta)
+		_, err = waitForDropletAttribute(ctx, d, "active", []string{"off"}, "status", meta)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -480,7 +495,7 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 
 		// Wait for the name to change
 		_, err = waitForDropletAttribute(
-			d, newName.(string), []string{"", oldName.(string)}, "name", meta)
+			ctx, d, newName.(string), []string{"", oldName.(string)}, "name", meta)
 
 		if err != nil {
 			return diag.Errorf(
@@ -526,7 +541,7 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 
 		// Wait for the private_networking to turn on
 		_, err = waitForDropletAttribute(
-			d, "true", []string{"", "false"}, "private_networking", meta)
+			ctx, d, "true", []string{"", "false"}, "private_networking", meta)
 
 		if err != nil {
 			return diag.Errorf(
@@ -545,7 +560,7 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 
 		// Wait for ipv6 to turn on
 		_, err = waitForDropletAttribute(
-			d, "true", []string{"", "false"}, "ipv6", meta)
+			ctx, d, "true", []string{"", "false"}, "ipv6", meta)
 
 		if err != nil {
 			return diag.Errorf(
@@ -608,11 +623,30 @@ func resourceDigitalOceanDropletDelete(ctx context.Context, d *schema.ResourceDa
 	}
 
 	_, err = waitForDropletAttribute(
-		d, "false", []string{"", "true"}, "locked", meta)
+		ctx, d, "false", []string{"", "true"}, "locked", meta)
 
 	if err != nil {
 		return diag.Errorf(
 			"Error waiting for droplet to be unlocked for destroy (%s): %s", d.Id(), err)
+	}
+
+	shutdown := d.Get("graceful_shutdown").(bool)
+	if shutdown {
+		log.Printf("[INFO] Shutting down droplet: %s", d.Id())
+
+		// Shutdown the droplet
+		// DO API doesn't return an error if we try to shutdown an already shutdown droplet
+		_, _, err = client.DropletActions.Shutdown(context.Background(), id)
+		if err != nil {
+			return diag.Errorf(
+				"Error shutting down the the droplet (%s): %s", d.Id(), err)
+		}
+
+		// Wait for shutdown
+		_, err = waitForDropletAttribute(ctx, d, "off", []string{"active"}, "status", meta)
+		if err != nil {
+			return diag.Errorf("Error waiting for droplet (%s) to become off: %s", d.Id(), err)
+		}
 	}
 
 	log.Printf("[INFO] Trying to Detach Storage Volumes (if any) from droplet: %s", d.Id())
@@ -632,7 +666,7 @@ func resourceDigitalOceanDropletDelete(ctx context.Context, d *schema.ResourceDa
 		return nil
 	}
 
-	_, err = waitForDropletDestroy(d, meta)
+	_, err = waitForDropletDestroy(ctx, d, meta)
 	if err != nil && strings.Contains(err.Error(), "404") {
 		return nil
 	} else if err != nil {
@@ -642,13 +676,13 @@ func resourceDigitalOceanDropletDelete(ctx context.Context, d *schema.ResourceDa
 	return nil
 }
 
-func waitForDropletDestroy(d *schema.ResourceData, meta interface{}) (interface{}, error) {
+func waitForDropletDestroy(ctx context.Context, d *schema.ResourceData, meta interface{}) (interface{}, error) {
 	log.Printf("[INFO] Waiting for droplet (%s) to be destroyed", d.Id())
 
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"active", "off"},
 		Target:     []string{"archived"},
-		Refresh:    newDropletStateRefreshFunc(d, "status", meta),
+		Refresh:    newDropletStateRefreshFunc(ctx, d, "status", meta),
 		Timeout:    60 * time.Second,
 		Delay:      10 * time.Second,
 		MinTimeout: 3 * time.Second,
@@ -658,7 +692,7 @@ func waitForDropletDestroy(d *schema.ResourceData, meta interface{}) (interface{
 }
 
 func waitForDropletAttribute(
-	d *schema.ResourceData, target string, pending []string, attribute string, meta interface{}) (interface{}, error) {
+	ctx context.Context, d *schema.ResourceData, target string, pending []string, attribute string, meta interface{}) (interface{}, error) {
 	// Wait for the droplet so we can get the networking attributes
 	// that show up after a while
 	log.Printf(
@@ -668,7 +702,7 @@ func waitForDropletAttribute(
 	stateConf := &resource.StateChangeConf{
 		Pending:    pending,
 		Target:     []string{target},
-		Refresh:    newDropletStateRefreshFunc(d, attribute, meta),
+		Refresh:    newDropletStateRefreshFunc(ctx, d, attribute, meta),
 		Timeout:    60 * time.Minute,
 		Delay:      10 * time.Second,
 		MinTimeout: 3 * time.Second,
@@ -685,7 +719,7 @@ func waitForDropletAttribute(
 // TODO This function still needs a little more refactoring to make it
 // cleaner and more efficient
 func newDropletStateRefreshFunc(
-	d *schema.ResourceData, attribute string, meta interface{}) resource.StateRefreshFunc {
+	ctx context.Context, d *schema.ResourceData, attribute string, meta interface{}) resource.StateRefreshFunc {
 	client := meta.(*CombinedConfig).godoClient()
 	return func() (interface{}, string, error) {
 		id, err := strconv.Atoi(d.Id())
@@ -728,7 +762,7 @@ func newDropletStateRefreshFunc(
 }
 
 // Powers on the droplet and waits for it to be active
-func powerOnAndWait(d *schema.ResourceData, meta interface{}) error {
+func powerOnAndWait(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	id, err := strconv.Atoi(d.Id())
 	if err != nil {
 		return fmt.Errorf("invalid droplet id: %v", err)
@@ -741,7 +775,7 @@ func powerOnAndWait(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	// Wait for power on
-	_, err = waitForDropletAttribute(d, "active", []string{"off"}, "status", meta)
+	_, err = waitForDropletAttribute(ctx, d, "active", []string{"off"}, "status", meta)
 	if err != nil {
 		return err
 	}

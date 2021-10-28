@@ -51,6 +51,7 @@ import (
 	floatingipv1alpha1 "kubeform.dev/provider-digitalocean-api/apis/floatingip/v1alpha1"
 	kubernetesv1alpha1 "kubeform.dev/provider-digitalocean-api/apis/kubernetes/v1alpha1"
 	loadbalancerv1alpha1 "kubeform.dev/provider-digitalocean-api/apis/loadbalancer/v1alpha1"
+	monitorv1alpha1 "kubeform.dev/provider-digitalocean-api/apis/monitor/v1alpha1"
 	projectv1alpha1 "kubeform.dev/provider-digitalocean-api/apis/project/v1alpha1"
 	recordv1alpha1 "kubeform.dev/provider-digitalocean-api/apis/record/v1alpha1"
 	spacesbucketv1alpha1 "kubeform.dev/provider-digitalocean-api/apis/spacesbucket/v1alpha1"
@@ -70,6 +71,7 @@ import (
 	controllersfloatingip "kubeform.dev/provider-digitalocean-controller/controllers/floatingip"
 	controllerskubernetes "kubeform.dev/provider-digitalocean-controller/controllers/kubernetes"
 	controllersloadbalancer "kubeform.dev/provider-digitalocean-controller/controllers/loadbalancer"
+	controllersmonitor "kubeform.dev/provider-digitalocean-controller/controllers/monitor"
 	controllersproject "kubeform.dev/provider-digitalocean-controller/controllers/project"
 	controllersrecord "kubeform.dev/provider-digitalocean-controller/controllers/record"
 	controllersspacesbucket "kubeform.dev/provider-digitalocean-controller/controllers/spacesbucket"
@@ -621,6 +623,23 @@ func SetupManager(ctx context.Context, mgr manager.Manager, gvk schema.GroupVers
 			return err
 		}
 	case schema.GroupVersionKind{
+		Group:   "monitor.digitalocean.kubeform.com",
+		Version: "v1alpha1",
+		Kind:    "Alert",
+	}:
+		if err := (&controllersmonitor.AlertReconciler{
+			Client:   mgr.GetClient(),
+			Log:      ctrl.Log.WithName("controllers").WithName("Alert"),
+			Scheme:   mgr.GetScheme(),
+			Gvk:      gvk,
+			Provider: _provider,
+			Resource: _provider.ResourcesMap["digitalocean_monitor_alert"],
+			TypeName: "digitalocean_monitor_alert",
+		}).SetupWithManager(ctx, mgr, auditor, restrictToNamespace); err != nil {
+			setupLog.Error(err, "unable to create controller", "controller", "Alert")
+			return err
+		}
+	case schema.GroupVersionKind{
 		Group:   "project.digitalocean.kubeform.com",
 		Version: "v1alpha1",
 		Kind:    "Project",
@@ -1004,6 +1023,15 @@ func SetupWebhook(mgr manager.Manager, gvk schema.GroupVersionKind) error {
 	}:
 		if err := (&loadbalancerv1alpha1.Loadbalancer{}).SetupWebhookWithManager(mgr); err != nil {
 			setupLog.Error(err, "unable to create webhook", "webhook", "Loadbalancer")
+			return err
+		}
+	case schema.GroupVersionKind{
+		Group:   "monitor.digitalocean.kubeform.com",
+		Version: "v1alpha1",
+		Kind:    "Alert",
+	}:
+		if err := (&monitorv1alpha1.Alert{}).SetupWebhookWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create webhook", "webhook", "Alert")
 			return err
 		}
 	case schema.GroupVersionKind{

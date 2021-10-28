@@ -42,6 +42,7 @@ func (r *Cluster) SetupWebhookWithManager(mgr ctrl.Manager) error {
 var _ webhook.Validator = &Cluster{}
 
 var clusterForceNewList = map[string]bool{
+	"/ha":               true,
 	"/node_pool/*/size": true,
 	"/region":           true,
 	"/vpc_uuid":         true,

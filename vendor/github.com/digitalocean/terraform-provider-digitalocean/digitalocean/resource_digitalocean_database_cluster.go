@@ -28,7 +28,7 @@ func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 		UpdateContext: resourceDigitalOceanDatabaseClusterUpdate,
 		DeleteContext: resourceDigitalOceanDatabaseClusterDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -96,6 +96,15 @@ func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 						"hour": {
 							Type:     schema.TypeString,
 							Required: true,
+							// Prevent a diff when seconds in response, e.g: "13:00" -> "13:00:00"
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								newSplit := strings.Split(new, ":")
+								if len(newSplit) == 3 {
+									newTrimed := strings.Join(newSplit[:2], ":")
+									return newTrimed == old
+								}
+								return old == new
+							},
 						},
 					},
 				},
@@ -295,7 +304,7 @@ func resourceDigitalOceanDatabaseClusterCreate(ctx context.Context, d *schema.Re
 func resourceDigitalOceanDatabaseClusterUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
-	if d.HasChange("size") || d.HasChange("node_count") {
+	if d.HasChanges("size", "node_count") {
 		opts := &godo.DatabaseResizeRequest{
 			SizeSlug: d.Get("size").(string),
 			NumNodes: d.Get("node_count").(int),
