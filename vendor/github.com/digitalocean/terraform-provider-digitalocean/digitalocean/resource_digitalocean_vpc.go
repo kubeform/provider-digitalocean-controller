@@ -20,7 +20,7 @@ func resourceDigitalOceanVPC() *schema.Resource {
 		UpdateContext: resourceDigitalOceanVPCUpdate,
 		DeleteContext: resourceDigitalOceanVPCDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -140,7 +140,7 @@ func resourceDigitalOceanVPCRead(ctx context.Context, d *schema.ResourceData, me
 func resourceDigitalOceanVPCUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
-	if d.HasChange("name") || d.HasChange("description") {
+	if d.HasChanges("name", "description") {
 		vpcUpdateRequest := &godo.VPCUpdateRequest{
 			Name:        d.Get("name").(string),
 			Description: d.Get("description").(string),
@@ -160,7 +160,7 @@ func resourceDigitalOceanVPCDelete(ctx context.Context, d *schema.ResourceData, 
 	client := meta.(*CombinedConfig).godoClient()
 	vpcID := d.Id()
 
-	err := resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
+	err := resource.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		resp, err := client.VPCs.Delete(context.Background(), vpcID)
 		if err != nil {
 			// Retry if VPC still contains member resources to prevent race condition

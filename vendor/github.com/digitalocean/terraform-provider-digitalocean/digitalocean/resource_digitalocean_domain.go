@@ -16,7 +16,7 @@ func resourceDigitalOceanDomain() *schema.Resource {
 		ReadContext:   resourceDigitalOceanDomainRead,
 		DeleteContext: resourceDigitalOceanDomainDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -34,6 +34,10 @@ func resourceDigitalOceanDomain() *schema.Resource {
 			},
 			"urn": {
 				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"ttl": {
+				Type:     schema.TypeInt,
 				Computed: true,
 			},
 		},
@@ -82,6 +86,7 @@ func resourceDigitalOceanDomainRead(ctx context.Context, d *schema.ResourceData,
 
 	d.Set("name", domain.Name)
 	d.Set("urn", domain.URN())
+	d.Set("ttl", domain.TTL)
 
 	return nil
 }

@@ -1,5 +1,63 @@
 # Change Log
 
+## [v1.69.1] - 2021-10-06
+
+- #484 - @sunny-b - k8s/godo: remove ha field from update request
+
+## [v1.69.0] - 2021-10-04
+
+- #482 - @dikshant - godo/load-balancers: add DisableLetsEncryptDNSRecords field for LBaaS
+
+## [v1.68.0] - 2021-09-29
+
+- #480 - @sunny-b - kubernetes: add support for HA control plane
+
+## [v1.67.0] - 2021-09-22
+
+- #478 - @sunny-b - kubernetes: add supported_features field to the kubernetes/options response
+- #477 - @wez470 - Add size unit to LB API.
+
+## [v1.66.0] - 2021-09-21
+
+- #473 - @andrewsomething - Add Go 1.17.x to test matrix and drop unsupported versions.
+- #472 - @bsnyder788 - insights: add private (in/out)bound and public inbound bandwidth aler…
+- #470 - @gottwald - domains: remove invalid json struct tag option
+
+## [v1.65.0] - 2021-08-05
+
+- #468 - @notxarb - New alerts feature for App Platform
+- #467 - @andrewsomething - docs: Update links to API documentation.
+- #466 - @andrewsomething - Mark Response.Monitor as deprecated.
+
+## [v1.64.2] - 2021-07-23
+
+- #464 - @bsnyder788 - insights: update HTTP method for alert policy update
+
+## [v1.64.1] - 2021-07-19
+
+- #462 - @bsnyder788 - insights: fix alert policy update endpoint
+
+## [v1.64.0] - 2021-07-19
+
+- #460 - @bsnyder788 - insights: add CRUD APIs for alert policies
+
+## [v1.63.0] - 2021-07-06
+
+- #458 - @ZachEddy - apps: Add tail_lines query parameter to GetLogs function
+
+## [v1.62.0] - 2021-06-07
+
+- #454 - @house-lee - add with_droplet_agent option to create requests
+
+## [v1.61.0] - 2021-05-12
+
+- #452 - @caiofilipini - Add support for DOKS clusters as peers in Firewall rules
+- #448 - @andrewsomething - flip: Set omitempty for Region in FloatingIPCreateRequest.
+- #451 - @andrewsomething - CheckResponse: Add RequestID from header to ErrorResponse when missing from body.
+- #450 - @nanzhong - dbaas: handle ca certificates as base64 encoded
+- #449 - @nanzhong - dbaas: add support for getting cluster CA
+- #446 - @kamaln7 - app spec: update cors policy
+
 ## [v1.60.0] - 2021-04-04
 
 - #443 - @andrewsomething - apps: Support pagination.

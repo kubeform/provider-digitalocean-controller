@@ -62,6 +62,8 @@ type DomainSpecResource struct {
 	IpAddress *string `json:"ipAddress,omitempty" tf:"ip_address"`
 	Name      *string `json:"name" tf:"name"`
 	// +optional
+	Ttl *int64 `json:"ttl,omitempty" tf:"ttl"`
+	// +optional
 	Urn *string `json:"urn,omitempty" tf:"urn"`
 }
 

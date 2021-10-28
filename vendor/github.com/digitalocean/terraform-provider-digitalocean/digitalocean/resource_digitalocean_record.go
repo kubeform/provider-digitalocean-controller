@@ -54,7 +54,7 @@ func resourceDigitalOceanRecord() *schema.Resource {
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 					domain := d.Get("domain").(string) + "."
 
-					return old+"."+domain == new
+					return (old == "@" && new == domain) || (old+"."+domain == new)
 				},
 			},
 
@@ -125,14 +125,10 @@ func resourceDigitalOceanRecord() *schema.Resource {
 				}
 			}
 
-			_, hasPort := diff.GetOkExists("port")
 			_, hasWeight := diff.GetOkExists("weight")
 			if recordType == "SRV" {
 				if !hasPriority {
 					return fmt.Errorf("`priority` is required for when type is `SRV`")
-				}
-				if !hasPort {
-					return fmt.Errorf("`port` is required for when type is `SRV`")
 				}
 				if !hasWeight {
 					return fmt.Errorf("`weight` is required for when type is `SRV`")
@@ -164,6 +160,11 @@ func resourceDigitalOceanRecordCreate(ctx context.Context, d *schema.ResourceDat
 	}
 
 	newRecord.Type = d.Get("type").(string)
+
+	_, hasPort := d.GetOkExists("port")
+	if newRecord.Type == "SRV" && !hasPort {
+		return diag.Errorf("`port` is required for when type is `SRV`")
+	}
 
 	log.Printf("[DEBUG] record create configuration: %#v", newRecord)
 	rec, _, err := client.Domains.CreateRecord(context.Background(), d.Get("domain").(string), newRecord)
@@ -290,19 +291,19 @@ func expandDigitalOceanRecordResource(d *schema.ResourceData) (*godo.DomainRecor
 		Data: d.Get("value").(string),
 	}
 
-	if v, ok := d.GetOkExists("port"); ok {
+	if v, ok := d.GetOk("port"); ok {
 		record.Port = v.(int)
 	}
-	if v, ok := d.GetOkExists("priority"); ok {
+	if v, ok := d.GetOk("priority"); ok {
 		record.Priority = v.(int)
 	}
 	if v, ok := d.GetOk("ttl"); ok {
 		record.TTL = v.(int)
 	}
-	if v, ok := d.GetOkExists("weight"); ok {
+	if v, ok := d.GetOk("weight"); ok {
 		record.Weight = v.(int)
 	}
-	if v, ok := d.GetOkExists("flags"); ok {
+	if v, ok := d.GetOk("flags"); ok {
 		record.Flags = v.(int)
 	}
 	if v, ok := d.GetOk("tag"); ok {
@@ -313,6 +314,10 @@ func expandDigitalOceanRecordResource(d *schema.ResourceData) (*godo.DomainRecor
 }
 
 func constructFqdn(name, domain string) string {
+	if name == "@" {
+		return domain
+	}
+
 	rn := strings.ToLower(name)
 	domainSuffix := domain + "."
 	if strings.HasSuffix(rn, domainSuffix) {
