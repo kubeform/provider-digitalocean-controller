@@ -1396,7 +1396,7 @@ kmodules.xyz/resource-metrics/api
 ## explicit
 kubeform.dev/apimachinery/api/v1alpha1
 kubeform.dev/apimachinery/pkg/util
-# kubeform.dev/provider-digitalocean-api v0.4.0
+# kubeform.dev/provider-digitalocean-api v0.4.1-0.20220126212128-2dbdea7f9674
 ## explicit
 kubeform.dev/provider-digitalocean-api/api/provider
 kubeform.dev/provider-digitalocean-api/apis/app
