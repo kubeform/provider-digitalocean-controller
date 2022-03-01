@@ -49,274 +49,272 @@ type Data struct {
 	ResourceType string
 }
 
-var (
-	allJsonIt = map[schema.GroupVersionResource]Data{
-		{
-			Group:    "app.digitalocean.kubeform.com",
-			Version:  "v1alpha1",
-			Resource: "apps",
-		}: {
-			JsonIt:       controllers.GetJSONItr(appv1alpha1.GetEncoder(), appv1alpha1.GetDecoder()),
-			ResourceType: "digitalocean_app",
-		},
-		{
-			Group:    "cdn.digitalocean.kubeform.com",
-			Version:  "v1alpha1",
-			Resource: "cdns",
-		}: {
-			JsonIt:       controllers.GetJSONItr(cdnv1alpha1.GetEncoder(), cdnv1alpha1.GetDecoder()),
-			ResourceType: "digitalocean_cdn",
-		},
-		{
-			Group:    "certificate.digitalocean.kubeform.com",
-			Version:  "v1alpha1",
-			Resource: "certificates",
-		}: {
-			JsonIt:       controllers.GetJSONItr(certificatev1alpha1.GetEncoder(), certificatev1alpha1.GetDecoder()),
-			ResourceType: "digitalocean_certificate",
-		},
-		{
-			Group:    "containerregistry.digitalocean.kubeform.com",
-			Version:  "v1alpha1",
-			Resource: "containerregistries",
-		}: {
-			JsonIt:       controllers.GetJSONItr(containerregistryv1alpha1.GetEncoder(), containerregistryv1alpha1.GetDecoder()),
-			ResourceType: "digitalocean_container_registry",
-		},
-		{
-			Group:    "containerregistry.digitalocean.kubeform.com",
-			Version:  "v1alpha1",
-			Resource: "dockercredentials",
-		}: {
-			JsonIt:       controllers.GetJSONItr(containerregistryv1alpha1.GetEncoder(), containerregistryv1alpha1.GetDecoder()),
-			ResourceType: "digitalocean_container_registry_docker_credentials",
-		},
-		{
-			Group:    "custom.digitalocean.kubeform.com",
-			Version:  "v1alpha1",
-			Resource: "images",
-		}: {
-			JsonIt:       controllers.GetJSONItr(customv1alpha1.GetEncoder(), customv1alpha1.GetDecoder()),
-			ResourceType: "digitalocean_custom_image",
-		},
-		{
-			Group:    "database.digitalocean.kubeform.com",
-			Version:  "v1alpha1",
-			Resource: "clusters",
-		}: {
-			JsonIt:       controllers.GetJSONItr(databasev1alpha1.GetEncoder(), databasev1alpha1.GetDecoder()),
-			ResourceType: "digitalocean_database_cluster",
-		},
-		{
-			Group:    "database.digitalocean.kubeform.com",
-			Version:  "v1alpha1",
-			Resource: "connectionpools",
-		}: {
-			JsonIt:       controllers.GetJSONItr(databasev1alpha1.GetEncoder(), databasev1alpha1.GetDecoder()),
-			ResourceType: "digitalocean_database_connection_pool",
-		},
-		{
-			Group:    "database.digitalocean.kubeform.com",
-			Version:  "v1alpha1",
-			Resource: "dbs",
-		}: {
-			JsonIt:       controllers.GetJSONItr(databasev1alpha1.GetEncoder(), databasev1alpha1.GetDecoder()),
-			ResourceType: "digitalocean_database_db",
-		},
-		{
-			Group:    "database.digitalocean.kubeform.com",
-			Version:  "v1alpha1",
-			Resource: "firewalls",
-		}: {
-			JsonIt:       controllers.GetJSONItr(databasev1alpha1.GetEncoder(), databasev1alpha1.GetDecoder()),
-			ResourceType: "digitalocean_database_firewall",
-		},
-		{
-			Group:    "database.digitalocean.kubeform.com",
-			Version:  "v1alpha1",
-			Resource: "replicas",
-		}: {
-			JsonIt:       controllers.GetJSONItr(databasev1alpha1.GetEncoder(), databasev1alpha1.GetDecoder()),
-			ResourceType: "digitalocean_database_replica",
-		},
-		{
-			Group:    "database.digitalocean.kubeform.com",
-			Version:  "v1alpha1",
-			Resource: "users",
-		}: {
-			JsonIt:       controllers.GetJSONItr(databasev1alpha1.GetEncoder(), databasev1alpha1.GetDecoder()),
-			ResourceType: "digitalocean_database_user",
-		},
-		{
-			Group:    "domain.digitalocean.kubeform.com",
-			Version:  "v1alpha1",
-			Resource: "domains",
-		}: {
-			JsonIt:       controllers.GetJSONItr(domainv1alpha1.GetEncoder(), domainv1alpha1.GetDecoder()),
-			ResourceType: "digitalocean_domain",
-		},
-		{
-			Group:    "droplet.digitalocean.kubeform.com",
-			Version:  "v1alpha1",
-			Resource: "droplets",
-		}: {
-			JsonIt:       controllers.GetJSONItr(dropletv1alpha1.GetEncoder(), dropletv1alpha1.GetDecoder()),
-			ResourceType: "digitalocean_droplet",
-		},
-		{
-			Group:    "droplet.digitalocean.kubeform.com",
-			Version:  "v1alpha1",
-			Resource: "snapshots",
-		}: {
-			JsonIt:       controllers.GetJSONItr(dropletv1alpha1.GetEncoder(), dropletv1alpha1.GetDecoder()),
-			ResourceType: "digitalocean_droplet_snapshot",
-		},
-		{
-			Group:    "firewall.digitalocean.kubeform.com",
-			Version:  "v1alpha1",
-			Resource: "firewalls",
-		}: {
-			JsonIt:       controllers.GetJSONItr(firewallv1alpha1.GetEncoder(), firewallv1alpha1.GetDecoder()),
-			ResourceType: "digitalocean_firewall",
-		},
-		{
-			Group:    "floatingip.digitalocean.kubeform.com",
-			Version:  "v1alpha1",
-			Resource: "floatingips",
-		}: {
-			JsonIt:       controllers.GetJSONItr(floatingipv1alpha1.GetEncoder(), floatingipv1alpha1.GetDecoder()),
-			ResourceType: "digitalocean_floating_ip",
-		},
-		{
-			Group:    "floatingip.digitalocean.kubeform.com",
-			Version:  "v1alpha1",
-			Resource: "assignments",
-		}: {
-			JsonIt:       controllers.GetJSONItr(floatingipv1alpha1.GetEncoder(), floatingipv1alpha1.GetDecoder()),
-			ResourceType: "digitalocean_floating_ip_assignment",
-		},
-		{
-			Group:    "kubernetes.digitalocean.kubeform.com",
-			Version:  "v1alpha1",
-			Resource: "clusters",
-		}: {
-			JsonIt:       controllers.GetJSONItr(kubernetesv1alpha1.GetEncoder(), kubernetesv1alpha1.GetDecoder()),
-			ResourceType: "digitalocean_kubernetes_cluster",
-		},
-		{
-			Group:    "kubernetes.digitalocean.kubeform.com",
-			Version:  "v1alpha1",
-			Resource: "nodepools",
-		}: {
-			JsonIt:       controllers.GetJSONItr(kubernetesv1alpha1.GetEncoder(), kubernetesv1alpha1.GetDecoder()),
-			ResourceType: "digitalocean_kubernetes_node_pool",
-		},
-		{
-			Group:    "loadbalancer.digitalocean.kubeform.com",
-			Version:  "v1alpha1",
-			Resource: "loadbalancers",
-		}: {
-			JsonIt:       controllers.GetJSONItr(loadbalancerv1alpha1.GetEncoder(), loadbalancerv1alpha1.GetDecoder()),
-			ResourceType: "digitalocean_loadbalancer",
-		},
-		{
-			Group:    "monitor.digitalocean.kubeform.com",
-			Version:  "v1alpha1",
-			Resource: "alerts",
-		}: {
-			JsonIt:       controllers.GetJSONItr(monitorv1alpha1.GetEncoder(), monitorv1alpha1.GetDecoder()),
-			ResourceType: "digitalocean_monitor_alert",
-		},
-		{
-			Group:    "project.digitalocean.kubeform.com",
-			Version:  "v1alpha1",
-			Resource: "projects",
-		}: {
-			JsonIt:       controllers.GetJSONItr(projectv1alpha1.GetEncoder(), projectv1alpha1.GetDecoder()),
-			ResourceType: "digitalocean_project",
-		},
-		{
-			Group:    "project.digitalocean.kubeform.com",
-			Version:  "v1alpha1",
-			Resource: "resources",
-		}: {
-			JsonIt:       controllers.GetJSONItr(projectv1alpha1.GetEncoder(), projectv1alpha1.GetDecoder()),
-			ResourceType: "digitalocean_project_resources",
-		},
-		{
-			Group:    "record.digitalocean.kubeform.com",
-			Version:  "v1alpha1",
-			Resource: "records",
-		}: {
-			JsonIt:       controllers.GetJSONItr(recordv1alpha1.GetEncoder(), recordv1alpha1.GetDecoder()),
-			ResourceType: "digitalocean_record",
-		},
-		{
-			Group:    "spacesbucket.digitalocean.kubeform.com",
-			Version:  "v1alpha1",
-			Resource: "spacesbuckets",
-		}: {
-			JsonIt:       controllers.GetJSONItr(spacesbucketv1alpha1.GetEncoder(), spacesbucketv1alpha1.GetDecoder()),
-			ResourceType: "digitalocean_spaces_bucket",
-		},
-		{
-			Group:    "spacesbucket.digitalocean.kubeform.com",
-			Version:  "v1alpha1",
-			Resource: "objects",
-		}: {
-			JsonIt:       controllers.GetJSONItr(spacesbucketv1alpha1.GetEncoder(), spacesbucketv1alpha1.GetDecoder()),
-			ResourceType: "digitalocean_spaces_bucket_object",
-		},
-		{
-			Group:    "ssh.digitalocean.kubeform.com",
-			Version:  "v1alpha1",
-			Resource: "keys",
-		}: {
-			JsonIt:       controllers.GetJSONItr(sshv1alpha1.GetEncoder(), sshv1alpha1.GetDecoder()),
-			ResourceType: "digitalocean_ssh_key",
-		},
-		{
-			Group:    "tag.digitalocean.kubeform.com",
-			Version:  "v1alpha1",
-			Resource: "tags",
-		}: {
-			JsonIt:       controllers.GetJSONItr(tagv1alpha1.GetEncoder(), tagv1alpha1.GetDecoder()),
-			ResourceType: "digitalocean_tag",
-		},
-		{
-			Group:    "volume.digitalocean.kubeform.com",
-			Version:  "v1alpha1",
-			Resource: "volumes",
-		}: {
-			JsonIt:       controllers.GetJSONItr(volumev1alpha1.GetEncoder(), volumev1alpha1.GetDecoder()),
-			ResourceType: "digitalocean_volume",
-		},
-		{
-			Group:    "volume.digitalocean.kubeform.com",
-			Version:  "v1alpha1",
-			Resource: "attachments",
-		}: {
-			JsonIt:       controllers.GetJSONItr(volumev1alpha1.GetEncoder(), volumev1alpha1.GetDecoder()),
-			ResourceType: "digitalocean_volume_attachment",
-		},
-		{
-			Group:    "volume.digitalocean.kubeform.com",
-			Version:  "v1alpha1",
-			Resource: "snapshots",
-		}: {
-			JsonIt:       controllers.GetJSONItr(volumev1alpha1.GetEncoder(), volumev1alpha1.GetDecoder()),
-			ResourceType: "digitalocean_volume_snapshot",
-		},
-		{
-			Group:    "vpc.digitalocean.kubeform.com",
-			Version:  "v1alpha1",
-			Resource: "vpcs",
-		}: {
-			JsonIt:       controllers.GetJSONItr(vpcv1alpha1.GetEncoder(), vpcv1alpha1.GetDecoder()),
-			ResourceType: "digitalocean_vpc",
-		},
-	}
-)
+var allJsonIt = map[schema.GroupVersionResource]Data{
+	{
+		Group:    "app.digitalocean.kubeform.com",
+		Version:  "v1alpha1",
+		Resource: "apps",
+	}: {
+		JsonIt:       controllers.GetJSONItr(appv1alpha1.GetEncoder(), appv1alpha1.GetDecoder()),
+		ResourceType: "digitalocean_app",
+	},
+	{
+		Group:    "cdn.digitalocean.kubeform.com",
+		Version:  "v1alpha1",
+		Resource: "cdns",
+	}: {
+		JsonIt:       controllers.GetJSONItr(cdnv1alpha1.GetEncoder(), cdnv1alpha1.GetDecoder()),
+		ResourceType: "digitalocean_cdn",
+	},
+	{
+		Group:    "certificate.digitalocean.kubeform.com",
+		Version:  "v1alpha1",
+		Resource: "certificates",
+	}: {
+		JsonIt:       controllers.GetJSONItr(certificatev1alpha1.GetEncoder(), certificatev1alpha1.GetDecoder()),
+		ResourceType: "digitalocean_certificate",
+	},
+	{
+		Group:    "containerregistry.digitalocean.kubeform.com",
+		Version:  "v1alpha1",
+		Resource: "containerregistries",
+	}: {
+		JsonIt:       controllers.GetJSONItr(containerregistryv1alpha1.GetEncoder(), containerregistryv1alpha1.GetDecoder()),
+		ResourceType: "digitalocean_container_registry",
+	},
+	{
+		Group:    "containerregistry.digitalocean.kubeform.com",
+		Version:  "v1alpha1",
+		Resource: "dockercredentials",
+	}: {
+		JsonIt:       controllers.GetJSONItr(containerregistryv1alpha1.GetEncoder(), containerregistryv1alpha1.GetDecoder()),
+		ResourceType: "digitalocean_container_registry_docker_credentials",
+	},
+	{
+		Group:    "custom.digitalocean.kubeform.com",
+		Version:  "v1alpha1",
+		Resource: "images",
+	}: {
+		JsonIt:       controllers.GetJSONItr(customv1alpha1.GetEncoder(), customv1alpha1.GetDecoder()),
+		ResourceType: "digitalocean_custom_image",
+	},
+	{
+		Group:    "database.digitalocean.kubeform.com",
+		Version:  "v1alpha1",
+		Resource: "clusters",
+	}: {
+		JsonIt:       controllers.GetJSONItr(databasev1alpha1.GetEncoder(), databasev1alpha1.GetDecoder()),
+		ResourceType: "digitalocean_database_cluster",
+	},
+	{
+		Group:    "database.digitalocean.kubeform.com",
+		Version:  "v1alpha1",
+		Resource: "connectionpools",
+	}: {
+		JsonIt:       controllers.GetJSONItr(databasev1alpha1.GetEncoder(), databasev1alpha1.GetDecoder()),
+		ResourceType: "digitalocean_database_connection_pool",
+	},
+	{
+		Group:    "database.digitalocean.kubeform.com",
+		Version:  "v1alpha1",
+		Resource: "dbs",
+	}: {
+		JsonIt:       controllers.GetJSONItr(databasev1alpha1.GetEncoder(), databasev1alpha1.GetDecoder()),
+		ResourceType: "digitalocean_database_db",
+	},
+	{
+		Group:    "database.digitalocean.kubeform.com",
+		Version:  "v1alpha1",
+		Resource: "firewalls",
+	}: {
+		JsonIt:       controllers.GetJSONItr(databasev1alpha1.GetEncoder(), databasev1alpha1.GetDecoder()),
+		ResourceType: "digitalocean_database_firewall",
+	},
+	{
+		Group:    "database.digitalocean.kubeform.com",
+		Version:  "v1alpha1",
+		Resource: "replicas",
+	}: {
+		JsonIt:       controllers.GetJSONItr(databasev1alpha1.GetEncoder(), databasev1alpha1.GetDecoder()),
+		ResourceType: "digitalocean_database_replica",
+	},
+	{
+		Group:    "database.digitalocean.kubeform.com",
+		Version:  "v1alpha1",
+		Resource: "users",
+	}: {
+		JsonIt:       controllers.GetJSONItr(databasev1alpha1.GetEncoder(), databasev1alpha1.GetDecoder()),
+		ResourceType: "digitalocean_database_user",
+	},
+	{
+		Group:    "domain.digitalocean.kubeform.com",
+		Version:  "v1alpha1",
+		Resource: "domains",
+	}: {
+		JsonIt:       controllers.GetJSONItr(domainv1alpha1.GetEncoder(), domainv1alpha1.GetDecoder()),
+		ResourceType: "digitalocean_domain",
+	},
+	{
+		Group:    "droplet.digitalocean.kubeform.com",
+		Version:  "v1alpha1",
+		Resource: "droplets",
+	}: {
+		JsonIt:       controllers.GetJSONItr(dropletv1alpha1.GetEncoder(), dropletv1alpha1.GetDecoder()),
+		ResourceType: "digitalocean_droplet",
+	},
+	{
+		Group:    "droplet.digitalocean.kubeform.com",
+		Version:  "v1alpha1",
+		Resource: "snapshots",
+	}: {
+		JsonIt:       controllers.GetJSONItr(dropletv1alpha1.GetEncoder(), dropletv1alpha1.GetDecoder()),
+		ResourceType: "digitalocean_droplet_snapshot",
+	},
+	{
+		Group:    "firewall.digitalocean.kubeform.com",
+		Version:  "v1alpha1",
+		Resource: "firewalls",
+	}: {
+		JsonIt:       controllers.GetJSONItr(firewallv1alpha1.GetEncoder(), firewallv1alpha1.GetDecoder()),
+		ResourceType: "digitalocean_firewall",
+	},
+	{
+		Group:    "floatingip.digitalocean.kubeform.com",
+		Version:  "v1alpha1",
+		Resource: "floatingips",
+	}: {
+		JsonIt:       controllers.GetJSONItr(floatingipv1alpha1.GetEncoder(), floatingipv1alpha1.GetDecoder()),
+		ResourceType: "digitalocean_floating_ip",
+	},
+	{
+		Group:    "floatingip.digitalocean.kubeform.com",
+		Version:  "v1alpha1",
+		Resource: "assignments",
+	}: {
+		JsonIt:       controllers.GetJSONItr(floatingipv1alpha1.GetEncoder(), floatingipv1alpha1.GetDecoder()),
+		ResourceType: "digitalocean_floating_ip_assignment",
+	},
+	{
+		Group:    "kubernetes.digitalocean.kubeform.com",
+		Version:  "v1alpha1",
+		Resource: "clusters",
+	}: {
+		JsonIt:       controllers.GetJSONItr(kubernetesv1alpha1.GetEncoder(), kubernetesv1alpha1.GetDecoder()),
+		ResourceType: "digitalocean_kubernetes_cluster",
+	},
+	{
+		Group:    "kubernetes.digitalocean.kubeform.com",
+		Version:  "v1alpha1",
+		Resource: "nodepools",
+	}: {
+		JsonIt:       controllers.GetJSONItr(kubernetesv1alpha1.GetEncoder(), kubernetesv1alpha1.GetDecoder()),
+		ResourceType: "digitalocean_kubernetes_node_pool",
+	},
+	{
+		Group:    "loadbalancer.digitalocean.kubeform.com",
+		Version:  "v1alpha1",
+		Resource: "loadbalancers",
+	}: {
+		JsonIt:       controllers.GetJSONItr(loadbalancerv1alpha1.GetEncoder(), loadbalancerv1alpha1.GetDecoder()),
+		ResourceType: "digitalocean_loadbalancer",
+	},
+	{
+		Group:    "monitor.digitalocean.kubeform.com",
+		Version:  "v1alpha1",
+		Resource: "alerts",
+	}: {
+		JsonIt:       controllers.GetJSONItr(monitorv1alpha1.GetEncoder(), monitorv1alpha1.GetDecoder()),
+		ResourceType: "digitalocean_monitor_alert",
+	},
+	{
+		Group:    "project.digitalocean.kubeform.com",
+		Version:  "v1alpha1",
+		Resource: "projects",
+	}: {
+		JsonIt:       controllers.GetJSONItr(projectv1alpha1.GetEncoder(), projectv1alpha1.GetDecoder()),
+		ResourceType: "digitalocean_project",
+	},
+	{
+		Group:    "project.digitalocean.kubeform.com",
+		Version:  "v1alpha1",
+		Resource: "resources",
+	}: {
+		JsonIt:       controllers.GetJSONItr(projectv1alpha1.GetEncoder(), projectv1alpha1.GetDecoder()),
+		ResourceType: "digitalocean_project_resources",
+	},
+	{
+		Group:    "record.digitalocean.kubeform.com",
+		Version:  "v1alpha1",
+		Resource: "records",
+	}: {
+		JsonIt:       controllers.GetJSONItr(recordv1alpha1.GetEncoder(), recordv1alpha1.GetDecoder()),
+		ResourceType: "digitalocean_record",
+	},
+	{
+		Group:    "spacesbucket.digitalocean.kubeform.com",
+		Version:  "v1alpha1",
+		Resource: "spacesbuckets",
+	}: {
+		JsonIt:       controllers.GetJSONItr(spacesbucketv1alpha1.GetEncoder(), spacesbucketv1alpha1.GetDecoder()),
+		ResourceType: "digitalocean_spaces_bucket",
+	},
+	{
+		Group:    "spacesbucket.digitalocean.kubeform.com",
+		Version:  "v1alpha1",
+		Resource: "objects",
+	}: {
+		JsonIt:       controllers.GetJSONItr(spacesbucketv1alpha1.GetEncoder(), spacesbucketv1alpha1.GetDecoder()),
+		ResourceType: "digitalocean_spaces_bucket_object",
+	},
+	{
+		Group:    "ssh.digitalocean.kubeform.com",
+		Version:  "v1alpha1",
+		Resource: "keys",
+	}: {
+		JsonIt:       controllers.GetJSONItr(sshv1alpha1.GetEncoder(), sshv1alpha1.GetDecoder()),
+		ResourceType: "digitalocean_ssh_key",
+	},
+	{
+		Group:    "tag.digitalocean.kubeform.com",
+		Version:  "v1alpha1",
+		Resource: "tags",
+	}: {
+		JsonIt:       controllers.GetJSONItr(tagv1alpha1.GetEncoder(), tagv1alpha1.GetDecoder()),
+		ResourceType: "digitalocean_tag",
+	},
+	{
+		Group:    "volume.digitalocean.kubeform.com",
+		Version:  "v1alpha1",
+		Resource: "volumes",
+	}: {
+		JsonIt:       controllers.GetJSONItr(volumev1alpha1.GetEncoder(), volumev1alpha1.GetDecoder()),
+		ResourceType: "digitalocean_volume",
+	},
+	{
+		Group:    "volume.digitalocean.kubeform.com",
+		Version:  "v1alpha1",
+		Resource: "attachments",
+	}: {
+		JsonIt:       controllers.GetJSONItr(volumev1alpha1.GetEncoder(), volumev1alpha1.GetDecoder()),
+		ResourceType: "digitalocean_volume_attachment",
+	},
+	{
+		Group:    "volume.digitalocean.kubeform.com",
+		Version:  "v1alpha1",
+		Resource: "snapshots",
+	}: {
+		JsonIt:       controllers.GetJSONItr(volumev1alpha1.GetEncoder(), volumev1alpha1.GetDecoder()),
+		ResourceType: "digitalocean_volume_snapshot",
+	},
+	{
+		Group:    "vpc.digitalocean.kubeform.com",
+		Version:  "v1alpha1",
+		Resource: "vpcs",
+	}: {
+		JsonIt:       controllers.GetJSONItr(vpcv1alpha1.GetEncoder(), vpcv1alpha1.GetDecoder()),
+		ResourceType: "digitalocean_vpc",
+	},
+}
 
 func getJsonItAndResType(gvr schema.GroupVersionResource) Data {
 	return allJsonIt[gvr]

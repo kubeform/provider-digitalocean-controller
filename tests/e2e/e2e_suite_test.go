@@ -58,7 +58,7 @@ var (
 func init() {
 	utilruntime.Must(scheme.AddToScheme(clientSetScheme.Scheme))
 
-	//flag.StringVar(&kubeconfigPath, "kubeconfig", kubeconfigPath, "Path to kubeconfig file with authorization information (the master location is set by the master flag).")
+	// flag.StringVar(&kubeconfigPath, "kubeconfig", kubeconfigPath, "Path to kubeconfig file with authorization information (the master location is set by the master flag).")
 	flag.StringVar(&kubeContext, "kube-context", "", "Name of kube context")
 	flag.StringVar(&whichController, "which-controller", whichController, "Define which controller you want to check")
 }
@@ -67,9 +67,7 @@ const (
 	TIMEOUT = 20 * time.Minute
 )
 
-var (
-	root *framework.Framework
-)
+var root *framework.Framework
 
 func TestE2e(t *testing.T) {
 	RegisterFailHandler(Fail)
