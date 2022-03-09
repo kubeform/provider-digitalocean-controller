@@ -15,11 +15,19 @@ func dataSourceDigitalOceanLoadbalancer() *schema.Resource {
 		ReadContext: dataSourceDigitalOceanLoadbalancerRead,
 		Schema: map[string]*schema.Schema{
 
+			"id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Description:  "id of the load balancer",
+				ValidateFunc: validation.NoZeroValues,
+				ExactlyOneOf: []string{"id", "name"},
+			},
 			"name": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				Description:  "name of the load balancer",
 				ValidateFunc: validation.NoZeroValues,
+				ExactlyOneOf: []string{"id", "name"},
 			},
 			// computed attributes
 			"urn": {
@@ -31,6 +39,11 @@ func dataSourceDigitalOceanLoadbalancer() *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "the region that the load balancer is deployed in",
+			},
+			"size_unit": {
+				Type:        schema.TypeInt,
+				Computed:    true,
+				Description: "the size of the load balancer.",
 			},
 			"size": {
 				Type:        schema.TypeString,
@@ -192,6 +205,11 @@ func dataSourceDigitalOceanLoadbalancer() *schema.Resource {
 				Computed:    true,
 				Description: "whether HTTP keepalive connections are maintained to target Droplets",
 			},
+			"disable_lets_encrypt_dns_records": {
+				Type:        schema.TypeBool,
+				Computed:    true,
+				Description: "whether to disable automatic DNS record creation for Let's Encrypt certificates that are added to the load balancer",
+			},
 			"vpc_uuid": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -204,69 +222,87 @@ func dataSourceDigitalOceanLoadbalancer() *schema.Resource {
 func dataSourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
-	name := d.Get("name").(string)
+	var foundLoadbalancer *godo.LoadBalancer
 
-	opts := &godo.ListOptions{
-		Page:    1,
-		PerPage: 200,
-	}
-
-	lbList := []godo.LoadBalancer{}
-
-	for {
-		lbs, resp, err := client.LoadBalancers.List(context.Background(), opts)
-
+	if id, ok := d.GetOk("id"); ok {
+		loadbalancer, _, err := client.LoadBalancers.Get(context.Background(), id.(string))
 		if err != nil {
-			return diag.Errorf("Error retrieving load balancers: %s", err)
+			return diag.FromErr(err)
 		}
 
-		lbList = append(lbList, lbs...)
-
-		if resp.Links == nil || resp.Links.IsLastPage() {
-			break
+		foundLoadbalancer = loadbalancer
+	} else if name, ok := d.GetOk("name"); ok {
+		opts := &godo.ListOptions{
+			Page:    1,
+			PerPage: 200,
 		}
 
-		page, err := resp.Links.CurrentPage()
+		lbList := []godo.LoadBalancer{}
+
+		for {
+			lbs, resp, err := client.LoadBalancers.List(context.Background(), opts)
+
+			if err != nil {
+				return diag.Errorf("Error retrieving load balancers: %s", err)
+			}
+
+			lbList = append(lbList, lbs...)
+
+			if resp.Links == nil || resp.Links.IsLastPage() {
+				break
+			}
+
+			page, err := resp.Links.CurrentPage()
+			if err != nil {
+				return diag.Errorf("Error retrieving load balancers: %s", err)
+			}
+
+			opts.Page = page + 1
+		}
+
+		loadbalancer, err := findLoadBalancerByName(lbList, name.(string))
 		if err != nil {
-			return diag.Errorf("Error retrieving load balancers: %s", err)
+			return diag.FromErr(err)
 		}
 
-		opts.Page = page + 1
+		foundLoadbalancer = loadbalancer
+	} else {
+		return diag.Errorf("Error: specify either a name, or id to use to look up the load balancer")
 	}
 
-	loadbalancer, err := findLoadBalancerByName(lbList, name)
-
-	if err != nil {
-		return diag.FromErr(err)
+	d.SetId(foundLoadbalancer.ID)
+	d.Set("name", foundLoadbalancer.Name)
+	d.Set("urn", foundLoadbalancer.URN())
+	d.Set("region", foundLoadbalancer.Region.Slug)
+	if foundLoadbalancer.SizeUnit > 0 {
+		d.Set("size_unit", foundLoadbalancer.SizeUnit)
+	} else if foundLoadbalancer.SizeSlug != "" {
+		d.Set("size", foundLoadbalancer.SizeSlug)
 	}
 
-	d.SetId(loadbalancer.ID)
-	d.Set("name", loadbalancer.Name)
-	d.Set("urn", loadbalancer.URN())
-	d.Set("region", loadbalancer.Region.Slug)
-	d.Set("size", loadbalancer.SizeSlug)
-	d.Set("ip", loadbalancer.IP)
-	d.Set("algorithm", loadbalancer.Algorithm)
-	d.Set("status", loadbalancer.Status)
-	d.Set("droplet_tag", loadbalancer.Tag)
-	d.Set("redirect_http_to_https", loadbalancer.RedirectHttpToHttps)
-	d.Set("enable_proxy_protocol", loadbalancer.EnableProxyProtocol)
-	d.Set("enable_backend_keepalive", loadbalancer.EnableBackendKeepalive)
-	d.Set("vpc_uuid", loadbalancer.VPCUUID)
+	d.Set("ip", foundLoadbalancer.IP)
+	d.Set("algorithm", foundLoadbalancer.Algorithm)
+	d.Set("status", foundLoadbalancer.Status)
+	d.Set("droplet_tag", foundLoadbalancer.Tag)
+	d.Set("redirect_http_to_https", foundLoadbalancer.RedirectHttpToHttps)
+	d.Set("enable_proxy_protocol", foundLoadbalancer.EnableProxyProtocol)
+	d.Set("enable_backend_keepalive", foundLoadbalancer.EnableBackendKeepalive)
+	d.Set("disable_lets_encrypt_dns_records", foundLoadbalancer.DisableLetsEncryptDNSRecords)
+	d.Set("vpc_uuid", foundLoadbalancer.VPCUUID)
 
-	if err := d.Set("droplet_ids", flattenDropletIds(loadbalancer.DropletIDs)); err != nil {
+	if err := d.Set("droplet_ids", flattenDropletIds(foundLoadbalancer.DropletIDs)); err != nil {
 		return diag.Errorf("[DEBUG] Error setting Load Balancer droplet_ids - error: %#v", err)
 	}
 
-	if err := d.Set("sticky_sessions", flattenStickySessions(loadbalancer.StickySessions)); err != nil {
+	if err := d.Set("sticky_sessions", flattenStickySessions(foundLoadbalancer.StickySessions)); err != nil {
 		return diag.Errorf("[DEBUG] Error setting Load Balancer sticky_sessions - error: %#v", err)
 	}
 
-	if err := d.Set("healthcheck", flattenHealthChecks(loadbalancer.HealthCheck)); err != nil {
+	if err := d.Set("healthcheck", flattenHealthChecks(foundLoadbalancer.HealthCheck)); err != nil {
 		return diag.Errorf("[DEBUG] Error setting Load Balancer healthcheck - error: %#v", err)
 	}
 
-	forwardingRules, err := flattenForwardingRules(client, loadbalancer.ForwardingRules)
+	forwardingRules, err := flattenForwardingRules(client, foundLoadbalancer.ForwardingRules)
 	if err != nil {
 		return diag.Errorf("[DEBUG] Error building Load Balancer forwarding rules - error: %#v", err)
 	}
